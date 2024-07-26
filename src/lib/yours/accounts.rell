@@ -27,7 +27,12 @@ function get_locked_account(account_id: byte_array): ft4.accounts.account? {
  */
 function ensure_locked_account(account_id: byte_array) {
   val id = get_locked_account_id(account_id);
-  return ft4.accounts.account @? { id } ?: ft4.accounts.create_account_without_auth(id, LOCKED_ACCOUNT_KIND);
+  return ft4.accounts.account @? { id } ?: create_locked_account(account_id);
+}
+
+function create_locked_account(account_id: byte_array) {
+  val id = get_locked_account_id(account_id);
+  return create ft4.accounts.account(id);
 }
 
 /**

@@ -15,12 +15,12 @@ function populate_metadata(yours.token, modules: set<name>) {
 }
 
 @extend(yours.after_apply_transfer)
-function after_apply_transfer(yours.token, modules: set<name>,attributes: map<text, gtv>) {
+function after_apply_transfer(yours.token, modules: set<name>, attributes: map<text, gtv>) {
   if (not modules.contains("equippables")) return;
 
   val equippable = equippable @? { token } ?: create equippable(token);
   val slots = list<name>.from_gtv(attributes.get("slots"));
   for (slot in slots) {
-    val occupying_slot = occupying_slot @? { equippable, slot } ?: create occupying_slot(equippable, slot);
+    val _ = occupying_slot @? { equippable, slot } ?: create occupying_slot(equippable, slot);
   }
 }

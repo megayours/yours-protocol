@@ -2,6 +2,5 @@
 module;
 
 namespace ft4 {
-  import lib.ft4.accounts;
-  import lib.ft4.auth;
+  import accounts: lib.ft3.account;
 }

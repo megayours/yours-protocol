@@ -1,7 +1,0 @@
-module;
-
-import lib.yours;
-import lib.yours.crosschain;
-
-import example_dapp.placeables;
-import example_dapp.equippables;

@@ -1,7 +1,4 @@
 @mount("example_dapp")
 module;
 
-import .placeables;
 import .equippables;
-
-import lib.ft4.auth;
