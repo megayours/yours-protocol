@@ -1,12 +1,13 @@
 operation register_equippable(
-  collection: text, 
-  name: text, 
-  symbol: text, 
-  slots: list<text>, 
-  image: text, 
-  animation_url: text) {
+  collection: text,
+  name: text,
+  symbol: text,
+  slots: list<text>,
+  image: text,
+  animation_url: text
+) {
   val spec = yours.token_specification(
-    project = "Example Project",
+    project = PROJECT_NAME,
     collection,
     name,
     modules = [rell.meta(register_equippable).module_name]
@@ -16,17 +17,19 @@ operation register_equippable(
   yours.attach_animation(token, animation_url);
   yours.attach_image(token, image);
 
-  val equippable = create equippable(token);
+  val equippable = create equippable ( token );
   for (slot in slots) {
-    create occupying_slot(equippable, slot);
+    create occupying_slot ( equippable, slot );
   }
 }
 
 operation mint_equippable(collection: name, token_id: integer, amount: integer, account_id: byte_array) {
-  val token = require(yours.get_token(collection, token_id));
+  val token = require(yours.get_token(PROJECT_NAME, collection, token_id));
   yours.mint_tokens(
-    token, 
+    token,
     yours.balance_specification(
-      ft4.accounts.account @ { .id == account_id }, 
-      amount));
+      ft4.accounts.account @ { .id == account_id },
+      amount
+    )
+  );
 }

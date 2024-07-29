@@ -1,3 +1,4 @@
+
 /**
  * The specification for a token.
  * 
@@ -77,7 +78,7 @@ function attach_animation(token, animation_url: text?): token_animation? {
   }
 
   if (animation_url != null) {
-    return create token_animation(token, animation_url);
+    return create token_animation ( token, animation_url );
   }
   return null;
 }
@@ -98,7 +99,7 @@ function attach_description(token, description: text?): token_description? {
   }
 
   if (description != null) {
-    return create token_description(token, description);
+    return create token_description ( token, description );
   }
   return null;
 }
@@ -119,7 +120,7 @@ function attach_image(token, image_url: text?) {
   }
 
   if (image_url != null) {
-    return create token_image(token, image_url);
+    return create token_image ( token, image_url );
   }
 
   return null;
@@ -148,7 +149,7 @@ function attach_module(token, module_name: name) {
   val name = modules[modules.size() - 1];
 
   if (token_module @? { token, name } == null) {
-    create token_module(token, name);
+    create token_module ( token, name );
   }
 }
 
@@ -189,19 +190,27 @@ function transfer_tokens(token, spec: transfer_specification) {
  * @param collection the collection name
  * @param token_id the token id
  */
-function get_token(collection: name, token_id: integer): token? {
-  return token @? { .collection.name == collection, .id == token_id };
+function get_token(project: name, collection: name, token_id: integer): token? {
+  return token @? {
+    .collection.project.name == project,
+    .collection.name == collection,
+    .id == token_id
+  };
 }
 
 /**
  * An active token is one where there exists a balance for the token.
  */
-function get_active_token(collection: name, token_id: integer): token? {
-  return token_balance @? { .token.collection.name == collection, .token.id == token_id } ( .token );
+function get_active_token(project: name, collection: name, token_id: integer): token? {
+  return token_balance @? {
+    .token.collection.project.name == project,
+    .token.collection.name == collection,
+    .token.id == token_id
+  } ( .token );
 }
 
 function _create_token(spec: token_specification, collection, token_id: integer) {
-  val token = create token(spec.name, collection, token_id);
+  val token = create token ( spec.name, collection, token_id );
 
   val modules = spec.modules;
   if (modules != null) {
@@ -224,7 +233,7 @@ function _get_token_balance(token, ft4.accounts.account) {
 function _mint_balance(token, ft4.accounts.account, amount: integer) {
   val receiver_balance = _get_token_balance(token, account);
   if (receiver_balance == null) {
-    create token_balance(token, account, amount);
+    create token_balance ( token, account, amount );
   } else {
     receiver_balance.amount += amount;
   }
