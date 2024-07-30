@@ -2,7 +2,7 @@
 
 Licensor: MegaYours
 
-Licensed Work: yours-core
+Licensed Work: yours-protocol
 
 Change Date: Three years from the date of this commit
 
