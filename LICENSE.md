@@ -39,4 +39,5 @@ For more information about the Business Source License, please visit https://mar
 ---
 
 MegaYours
+
 info@megayours.com
