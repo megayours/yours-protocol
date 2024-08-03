@@ -1,7 +1,7 @@
 build
 logs
-src/lib/*
 .chromia
+src/lib/*
 !src/lib/yours
 
 .DS_STORE

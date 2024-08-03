@@ -6,14 +6,14 @@ operation register_equippable(
   image: text,
   animation_url: text
 ) {
-  val spec = yours.token_specification(
+  val info = yours.token_info(
     project = PROJECT_NAME,
     collection,
     name,
     modules = [rell.meta(register_equippable).module_name]
   );
 
-  val token = yours.create_token_with_incremental_id(spec);
+  val token = yours.create_token(info);
   yours.attach_animation(token, animation_url);
   yours.attach_image(token, image);
 
@@ -25,9 +25,9 @@ operation register_equippable(
 
 operation mint_equippable(collection: name, token_id: integer, amount: integer, account_id: byte_array) {
   val token = require(yours.get_token(PROJECT_NAME, collection, token_id));
-  yours.mint_tokens(
+  yours.mint(
     token,
-    yours.balance_specification(
+    yours.balance_info(
       ft4.accounts.account @ { .id == account_id },
       amount
     )

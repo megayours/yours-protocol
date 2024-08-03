@@ -8,7 +8,7 @@
  * @param icon_url The URL of the icon of the token.
  * @param modules The modules of the token.
  */
-struct token_specification {
+struct token_info {
   project: name;
   collection: name;
   name: name;
@@ -21,7 +21,7 @@ struct token_specification {
  * @param account The account to mint or burn the token from.
  * @param amount The amount of the token to mint or burn.
  */
-struct balance_specification {
+struct balance_info {
   account: ft4.accounts.account;
   amount: integer;
 }
@@ -33,7 +33,7 @@ struct balance_specification {
  * @param to The account to transfer the token to.
  * @param amount The amount of the token to transfer.
  */
-struct transfer_specification {
+struct transfer_info {
   from: ft4.accounts.account;
   to: ft4.accounts.account;
   amount: integer;
@@ -42,24 +42,24 @@ struct transfer_specification {
 /**
  * Define a new token with a specific ID.
  *
- * @param spec the specification for the token
+ * @param info the information for the token
  * @param token_id the token id
  */
-function create_token_with_id(spec: token_specification, token_id: integer) {
-  val project = ensure_project(spec.project);
-  val collection = ensure_collection(spec.collection, project);
-  return _create_token(spec, collection, token_id);
+function create_token_with_id(info: token_info, token_id: integer): token {
+  val project = ensure_project(info.project);
+  val collection = ensure_collection(info.collection, project);
+  return _create_token(info, collection, token_id);
 }
 
 /**
  * Define a new token on the blockchain.
  *
- * @param spec the specification for the token
+ * @param info the information for the token
  */
-function create_token_with_incremental_id(spec: token_specification) {
-  val project = ensure_project(spec.project);
-  val collection = ensure_collection(spec.collection, project);
-  return _create_token(spec, collection, _get_next_token_id(collection));
+function create_token(info: token_info): token {
+  val project = ensure_project(info.project);
+  val collection = ensure_collection(info.collection, project);
+  return _create_token(info, collection, _get_next_token_id(collection));
 }
 
 /**
@@ -157,31 +157,31 @@ function attach_module(token, module_name: name) {
  * Mint tokens to a specific account.
  *
  * @param token the token to mint from
- * @param spec the specification for the mint
+ * @param info the information for the mint
  */
-function mint_tokens(token, spec: balance_specification) {
-  _mint_balance(token, spec.account, spec.amount);
+function mint(token, info: balance_info) {
+  _mint_balance(token, info.account, info.amount);
 }
 
 /**
  * Burn tokens from a specific account.
  *
  * @param token the token to burn from
- * @param spec the specification for the burn
+ * @param info the information for the burn
  */
-function burn_tokens(token, spec: balance_specification) {
-  _burn_balance(token, spec.account, spec.amount);
+function burn(token, info: balance_info) {
+  _burn_balance(token, info.account, info.amount);
 }
 
 /**
  * Transfer tokens from one account to another.
  *
  * @param token to transfer
- * @param spec the specification for the transfer
+ * @param info the information for the transfer
  */
-function transfer_tokens(token, spec: transfer_specification) {
-  _burn_balance(token, spec.from, spec.amount);
-  _mint_balance(token, spec.to, spec.amount);
+function transfer(token, info: transfer_info) {
+  _burn_balance(token, info.from, info.amount);
+  _mint_balance(token, info.to, info.amount);
 }
 
 /**
@@ -209,10 +209,10 @@ function get_active_token(project: name, collection: name, token_id: integer): t
   } ( .token );
 }
 
-function _create_token(spec: token_specification, collection, token_id: integer) {
-  val token = create token ( spec.name, collection, token_id );
+function _create_token(info: token_info, collection, token_id: integer) {
+  val token = create token ( info.name, collection, token_id );
 
-  val modules = spec.modules;
+  val modules = info.modules;
   if (modules != null) {
     for (m in modules) {
       attach_module(token, m);
