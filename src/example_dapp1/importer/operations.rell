@@ -40,7 +40,6 @@ operation sft(metadata: yours.token_metadata_incoming) {
     )
   );
 
-  create tracker.tracker ( token, op_context.last_block_time );
   create yours.imported_attributes ( token, json = metadata.properties );
 
   yours.attach_image(token, metadata.image);
