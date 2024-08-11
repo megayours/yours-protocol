@@ -22,10 +22,10 @@ operation init_transfer(
   amount: integer,
   metadata: token_metadata_incoming
 ) {
-  log("---------- init_transfer ----------");
   val account = ft4.auth.authenticate();
 
   val token = require(get_token(project, collection, token_id), "Token Not Found");
+  require(get_balance(token, account) >= amount, "Insufficient balance");
   val existing_metadata = get_metadata(token);
 
   _validate_metadata(metadata, existing_metadata);
@@ -73,7 +73,6 @@ operation apply_transfer(
   init_transfer_tx: gtx_transaction,
   init_tx_op_index: integer
 ) {
-  log("---------- apply_transfer ----------");
   val (init_transfer_details, _) = _validate_apply_transfer(
     init_transfer_tx,
     init_tx_op_index
@@ -129,7 +128,6 @@ operation complete_transfer(
   final_apply_transfer_tx: gtx_transaction,
   op_index: integer
 ) {
-  log("---------- complete_transfer ----------");
   require(
     final_apply_transfer_tx.body.operations[op_index].name == rell.meta(apply_transfer).mount_name,
     "Operation at op_index was not apply_transfer"
