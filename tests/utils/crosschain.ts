@@ -12,56 +12,77 @@ export async function performCrossChainTransfer(
   amount: number,
   metadata: TokenMetadata
 ): Promise<void> {
-  return new Promise<void>(async (resolve, reject) => {
-    try {
-      await fromSession.transactionBuilder()
-        .add(op(
-          "yours.init_transfer",
-          toAccountId,
-          metadata.yours.project,
-          metadata.yours.collection,
-          tokenId,
-          amount,
-          serializeTokenMetadata(metadata)
-        ), {
-          onAnchoredHandler: async (initData: any) => {
-            if (!initData) throw new Error("No data provided after init_transfer");
-            const iccfProofOperation = await initData.createProof(toChain.config.blockchainRid);
-            await transactionBuilder(noopAuthenticator, toChain)
-              .add(iccfProofOperation, {
-                authenticator: noopAuthenticator,
-              })
-              .add(op(
-                "yours.apply_transfer",
-                initData.tx,
-                initData.opIndex
-              ), {
-                authenticator: noopAuthenticator,
-                onAnchoredHandler: async (applyData: any) => {
-                  if (!applyData) throw new Error("No data provided after apply_transfer");
-                  const iccfProofOperation = await applyData.createProof(fromSession.blockchainRid);
-                  await fromSession.transactionBuilder()
-                    .add(iccfProofOperation, {
-                      authenticator: noopAuthenticator,
-                    })
-                    .add(op(
-                      "yours.complete_transfer",
-                      applyData.tx,
-                      applyData.opIndex
-                    ), {
-                      authenticator: noopAuthenticator,
-                    })
-                    .buildAndSend();
-                }
-              })
-              .buildAndSendWithAnchoring();
-
-            resolve();
+  return new Promise((resolve, reject) => {
+    fromSession.transactionBuilder()
+      .add(op(
+        "yours.init_transfer",
+        toAccountId,
+        metadata.yours.project,
+        metadata.yours.collection,
+        tokenId,
+        amount,
+        serializeTokenMetadata(metadata)
+      ), {
+        onAnchoredHandler: (initData: any) => {
+          if (!initData) {
+            reject(new Error("No data provided after init_transfer"));
+            return;
           }
-        })
-        .buildAndSendWithAnchoring();
-    } catch (error) {
-      reject(error);
-    }
+          
+          initData.createProof(toChain.config.blockchainRid)
+            .then((iccfProofOperation: any) => {
+              return transactionBuilder(noopAuthenticator, toChain)
+                .add(iccfProofOperation, {
+                  authenticator: noopAuthenticator,
+                })
+                .add(op(
+                  "yours.apply_transfer",
+                  initData.tx,
+                  initData.opIndex
+                ), {
+                  authenticator: noopAuthenticator,
+                  onAnchoredHandler: (applyData: any) => {
+                    if (!applyData) {
+                      reject(new Error("No data provided after apply_transfer"));
+                      return;
+                    }
+                    
+                    applyData.createProof(fromSession.blockchainRid)
+                      .then((iccfProofOperation: any) => {
+                        return fromSession.transactionBuilder()
+                          .add(iccfProofOperation, {
+                            authenticator: noopAuthenticator,
+                          })
+                          .add(op(
+                            "yours.complete_transfer",
+                            applyData.tx,
+                            applyData.opIndex
+                          ), {
+                            authenticator: noopAuthenticator,
+                          })
+                          .buildAndSend();
+                      })
+                      .then(() => {
+                        resolve();
+                      })
+                      .catch((error) => {
+                        console.error("Error in complete_transfer:", error);
+                        reject(error);
+                      });
+                  }
+                })
+                .buildAndSendWithAnchoring();
+            })
+            .catch((error) => {
+              console.error("Error in apply_transfer:", error);
+              reject(error);
+            });
+        }
+      })
+      .buildAndSendWithAnchoring()
+      .catch((error) => {
+        console.error("Error in performCrossChainTransfer:", error);
+        reject(error);
+      });
   });
 }

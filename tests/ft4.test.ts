@@ -11,7 +11,7 @@ describe('FT4', () => {
   }, TIMEOUT_SETUP);
 
   afterAll(async () => {
-    await teardown();
+    await teardown(environment.network, environment.chromiaNode, environment.postgres);
   }, TIMEOUT_SETUP);
 
   it('able to register an account to dapp1', async () => {

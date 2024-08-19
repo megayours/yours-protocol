@@ -1,7 +1,7 @@
 import { getTestEnvironment, teardown, TestEnvironment } from "./utils/setup";
 import { TEST_PROJECT, TIMEOUT_SETUP, TIMEOUT_TEST } from "./utils/constants";
 import { createAccount } from "./utils/ft4";
-import { serializeTokenMetadata } from "./utils/metadata";
+import { createTokenMetadata, serializeTokenMetadata } from "./utils/metadata";
 import { randomCollectionName } from "./utils/random";
 import { TokenMetadata } from "./utils/types";
 import { encryption } from "postchain-client";
@@ -16,7 +16,7 @@ describe('Crosschain', () => {
   }, TIMEOUT_SETUP);
 
   afterAll(async () => {
-    await teardown();
+    await teardown(environment.network, environment.chromiaNode, environment.postgres);
   }, TIMEOUT_SETUP);
 
   it('able to parse and update properties', async () => {
@@ -73,7 +73,6 @@ describe('Crosschain', () => {
     await testCrossChainTransfer(params);
 
     const destinationMetadata = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
-    console.log("destinationMetadata", destinationMetadata);
     await performCrossChainTransfer(
       dapp2Session,
       environment.dapp1Client,
@@ -85,7 +84,6 @@ describe('Crosschain', () => {
 
     // Verify
     const sourceMetadata = await dapp1Session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
-    console.log("sourceMetadata", sourceMetadata);
     expect(sourceMetadata.properties["times_bridged"]).toEqual(2);
   }, TIMEOUT_TEST);
 
@@ -148,37 +146,6 @@ describe('Crosschain', () => {
     expect(metadataDapp2.properties.rich_property).toEqual(tokenMetadata.properties.rich_property);
     expect(metadataDapp2.properties.array_property).toEqual(tokenMetadata.properties.array_property);
   }, TIMEOUT_TEST);
-
-  const createTokenMetadata = (collection: string, name: string = "A Test Token"): TokenMetadata => ({
-    name,
-    properties: {
-      simple_property: "example value",
-      rich_property: {
-        name: "Name",
-        value: "123",
-        display_value: "123 Example Value",
-        class: "emphasis",
-        css: {
-          color: "#ffffff",
-          "font-weight": "bold",
-          "text-decoration": "underline"
-        }
-      },
-      array_property: {
-        name: "Name",
-        value: [1, 2, 3, 4],
-        class: "emphasis"
-      }
-    },
-    yours: {
-      modules: [],
-      project: TEST_PROJECT,
-      collection,
-    },
-    description: "A Test Description",
-    image: "A Test Image",
-    animation_url: "A Test Animation"
-  });
 
   type CrosschainTestParams = {
     dapp1Session: Session;

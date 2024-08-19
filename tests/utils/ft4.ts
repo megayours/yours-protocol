@@ -3,11 +3,10 @@ import { createInMemoryFtKeyStore, createKeyStoreInteractor, createSingleSigAuth
 
 export async function createAccount(client: IClient, keyPair: KeyPair) {
   const keyStore = createInMemoryFtKeyStore(keyPair);
-  const keyStoreInteractor = createKeyStoreInteractor(
-    client,
-    keyStore
-  );
-  if ((await keyStoreInteractor.getAccounts()).length > 0) {
+  const keyStoreInteractor = createKeyStoreInteractor(client, keyStore);
+
+  const accounts = await keyStoreInteractor.getAccounts();
+  if (accounts.length > 0) {
     throw new Error("Account already exists");
   }
 
@@ -18,5 +17,6 @@ export async function createAccount(client: IClient, keyPair: KeyPair) {
       flags: []
     }
   }));
+
   return session;
 }

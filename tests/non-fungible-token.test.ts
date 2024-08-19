@@ -4,7 +4,7 @@ import { getTestEnvironment, teardown, TestEnvironment } from "./utils/setup";
 import { TEST_PROJECT, TIMEOUT_SETUP, TIMEOUT_TEST } from "./utils/constants";
 import { op } from "@chromia/ft4";
 import { TokenMetadata } from "./utils/types";
-import { serializeTokenMetadata } from "./utils/metadata";
+import { createTokenMetadata, serializeTokenMetadata } from "./utils/metadata";
 import { expect } from "@jest/globals";
 import { randomCollectionName } from "./utils/random";
 
@@ -16,7 +16,7 @@ describe('Non-Fungible Token', () => {
   }, TIMEOUT_SETUP);
 
   afterAll(async () => {
-    await teardown();
+    await teardown(environment.network, environment.chromiaNode, environment.postgres);
   }, TIMEOUT_SETUP);
 
   it('able to create a Non-Fungible Token', async () => {
@@ -24,38 +24,8 @@ describe('Non-Fungible Token', () => {
     const session = await createAccount(environment.dapp1Client, keyPair);
 
     const collection = randomCollectionName();
+    const tokenMetadata = createTokenMetadata(collection);
     const tokenId = 0;
-
-    const tokenMetadata: TokenMetadata = {
-      name: `Avatar #${tokenId}`,
-      properties: {
-        simple_property: "example value",
-        rich_property: {
-          name: "Name",
-          value: "123",
-          display_value: "123 Example Value",
-          class: "emphasis",
-          css: {
-            color: "#ffffff",
-            "font-weight": "bold",
-            "text-decoration": "underline"
-          }
-        },
-        array_property: {
-          name: "Name",
-          value: [1, 2, 3, 4],
-          class: "emphasis"
-        }
-      },
-      yours: {
-        modules: [],
-        project: TEST_PROJECT,
-        collection,
-      },
-      description: "A Test Description",
-      image: "A Test Image",
-      animation_url: "A Test Animation"
-    };
 
     await session.transactionBuilder()
       .add(op("importer.nft", serializeTokenMetadata(tokenMetadata), tokenId))
@@ -78,38 +48,8 @@ describe('Non-Fungible Token', () => {
     const session = await createAccount(environment.dapp1Client, keyPair);
 
     const collection = randomCollectionName();
+    const tokenMetadata = createTokenMetadata(collection);
     const tokenId = 1;
-
-    const tokenMetadata: TokenMetadata = {
-      name: `Avatar #${tokenId}`,
-      properties: {
-        simple_property: "example value",
-        rich_property: {
-          name: "Name",
-          value: "123",
-          display_value: "123 Example Value",
-          class: "emphasis",
-          css: {
-            color: "#ffffff",
-            "font-weight": "bold",
-            "text-decoration": "underline"
-          }
-        },
-        array_property: {
-          name: "Name",
-          value: [1, 2, 3, 4],
-          class: "emphasis"
-        }
-      },
-      yours: {
-        modules: [],
-        project: TEST_PROJECT,
-        collection,
-      },
-      description: "Avatar Description",
-      image: "Avatar Image",
-      animation_url: "Avatar Animation"
-    };
 
     const serializedMetadata = serializeTokenMetadata(tokenMetadata);
 
