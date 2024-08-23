@@ -19,3 +19,11 @@ query balance(account_id: byte_array, project: name, collection: name, token_id:
 
   return get_balance(token, account);
 }
+
+query projects(owner_id: byte_array): list<name> {
+  return project @* { .owner_id == owner_id } ( .name );
+}
+
+query collections(project: name): list<name> {
+  return collection @* { .project.name == project } ( .name );
+}

@@ -17,8 +17,6 @@ export async function performCrossChainTransfer(
       .add(op(
         "yours.init_transfer",
         toAccountId,
-        metadata.yours.project,
-        metadata.yours.collection,
         tokenId,
         amount,
         serializeTokenMetadata(metadata)

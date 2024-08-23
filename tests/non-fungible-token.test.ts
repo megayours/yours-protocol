@@ -1,10 +1,10 @@
 import { encryption } from "postchain-client";
 import { createAccount } from "./utils/ft4";
 import { getTestEnvironment, teardown, TestEnvironment } from "./utils/setup";
-import { TEST_PROJECT, TIMEOUT_SETUP, TIMEOUT_TEST } from "./utils/constants";
+import { TIMEOUT_SETUP, TIMEOUT_TEST } from "./utils/constants";
 import { op } from "@chromia/ft4";
 import { TokenMetadata } from "./utils/types";
-import { createTokenMetadata, serializeTokenMetadata } from "./utils/metadata";
+import { createProjectMetadata, createTokenMetadata, serializeTokenMetadata } from "./utils/metadata";
 import { expect } from "@jest/globals";
 import { randomCollectionName } from "./utils/random";
 
@@ -23,8 +23,10 @@ describe('Non-Fungible Token', () => {
     const keyPair = encryption.makeKeyPair();
     const session = await createAccount(environment.dapp1Client, keyPair);
 
+    const project = createProjectMetadata(session.account.id);
     const collection = randomCollectionName();
-    const tokenMetadata = createTokenMetadata(collection);
+    const tokenMetadata = createTokenMetadata(project, collection);
+
     const tokenId = 0;
 
     await session.transactionBuilder()
@@ -35,7 +37,7 @@ describe('Non-Fungible Token', () => {
       "yours.balance", 
       { 
         account_id: session.account.id, 
-        project: TEST_PROJECT, 
+        project: project.name, 
         collection, 
         token_id: tokenId 
       }
@@ -47,8 +49,10 @@ describe('Non-Fungible Token', () => {
     const keyPair = encryption.makeKeyPair();
     const session = await createAccount(environment.dapp1Client, keyPair);
 
+    const project = createProjectMetadata(session.account.id);
     const collection = randomCollectionName();
-    const tokenMetadata = createTokenMetadata(collection);
+    const tokenMetadata = createTokenMetadata(project, collection);
+
     const tokenId = 1;
 
     const serializedMetadata = serializeTokenMetadata(tokenMetadata);
@@ -57,7 +61,7 @@ describe('Non-Fungible Token', () => {
       .add(op("importer.nft", serializedMetadata, tokenId))
       .buildAndSend();
 
-    const metadata = await session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
+    const metadata = await session.query<TokenMetadata>("yours.metadata", { project: project.name, collection, token_id: tokenId });
     expect(metadata.name).toBe(tokenMetadata.name);
     expect(metadata.properties["rich_property"]["name"]).toEqual(tokenMetadata.properties.rich_property["name"]);
     expect(metadata.properties["rich_property"]["value"]).toEqual(tokenMetadata.properties.rich_property["value"]);

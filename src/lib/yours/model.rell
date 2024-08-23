@@ -5,6 +5,7 @@
  */
 entity project {
   key name;
+  index mutable owner_id: byte_array;
 }
 
 /**

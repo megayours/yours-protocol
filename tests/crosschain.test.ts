@@ -1,9 +1,9 @@
 import { getTestEnvironment, teardown, TestEnvironment } from "./utils/setup";
-import { TEST_PROJECT, TIMEOUT_SETUP, TIMEOUT_TEST } from "./utils/constants";
+import { TIMEOUT_SETUP, TIMEOUT_TEST } from "./utils/constants";
 import { createAccount } from "./utils/ft4";
-import { createTokenMetadata, serializeTokenMetadata } from "./utils/metadata";
+import { createProjectMetadata, createTokenMetadata, serializeTokenMetadata } from "./utils/metadata";
 import { randomCollectionName } from "./utils/random";
-import { TokenMetadata } from "./utils/types";
+import { ProjectMetadata, TokenMetadata } from "./utils/types";
 import { encryption } from "postchain-client";
 import { performCrossChainTransfer } from "./utils/crosschain";
 import { op, Session } from "@chromia/ft4";
@@ -26,13 +26,15 @@ describe('Crosschain', () => {
     const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
     const collection = randomCollectionName();
-    const tokenMetadata = createTokenMetadata(collection);
+    const project = createProjectMetadata(dapp1Session.account.id);
+    const tokenMetadata = createTokenMetadata(project, collection);
 
     const tokenId = 0;
     const params: CrosschainTestParams = {
       dapp1Session,
       dapp2Session,
       tokenType: 'nft',
+      project,
       collection,
       tokenId,
       mintAmount: 1,
@@ -44,7 +46,7 @@ describe('Crosschain', () => {
     await testCrossChainTransfer(params);
 
     // Verify
-    const metadataDapp2 = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
+    const metadataDapp2 = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: project.name, collection, token_id: tokenId });
     expect(metadataDapp2.properties["times_bridged"]).toEqual(1);
   }, TIMEOUT_TEST);
 
@@ -55,13 +57,15 @@ describe('Crosschain', () => {
     const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
     const collection = randomCollectionName();
-    const tokenMetadata = createTokenMetadata(collection);
+    const project = createProjectMetadata(dapp1Session.account.id);
+    const tokenMetadata = createTokenMetadata(project, collection);
 
     const tokenId = 0;
     const params: CrosschainTestParams = {
       dapp1Session,
       dapp2Session,
       tokenType: 'nft',
+      project,
       collection,
       tokenId,
       mintAmount: 1,
@@ -72,7 +76,7 @@ describe('Crosschain', () => {
     // Act
     await testCrossChainTransfer(params);
 
-    const destinationMetadata = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
+    const destinationMetadata = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: project.name, collection, token_id: tokenId });
     await performCrossChainTransfer(
       dapp2Session,
       environment.dapp1Client,
@@ -83,7 +87,7 @@ describe('Crosschain', () => {
     );
 
     // Verify
-    const sourceMetadata = await dapp1Session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
+    const sourceMetadata = await dapp1Session.query<TokenMetadata>("yours.metadata", { project: project.name, collection, token_id: tokenId });
     expect(sourceMetadata.properties["times_bridged"]).toEqual(2);
   }, TIMEOUT_TEST);
 
@@ -94,12 +98,14 @@ describe('Crosschain', () => {
     const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
     const collection = randomCollectionName();
-    const tokenMetadata = createTokenMetadata(collection);
+    const project = createProjectMetadata(dapp1Session.account.id);
+    const tokenMetadata = createTokenMetadata(project, collection);
     const tokenId = 0;
     const params: CrosschainTestParams = {
       dapp1Session,
       dapp2Session,
       tokenType: 'nft',
+      project,
       collection,
       tokenId,
       mintAmount: 1,
@@ -111,7 +117,7 @@ describe('Crosschain', () => {
     await testCrossChainTransfer(params);
 
     // Verify
-    const metadataDapp2 = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
+    const metadataDapp2 = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: project.name, collection, token_id: tokenId });
     expect(metadataDapp2.properties.simple_property).toEqual(tokenMetadata.properties.simple_property);
     expect(metadataDapp2.properties.rich_property).toEqual(tokenMetadata.properties.rich_property);
     expect(metadataDapp2.properties.array_property).toEqual(tokenMetadata.properties.array_property);
@@ -124,12 +130,14 @@ describe('Crosschain', () => {
     const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
     const collection = randomCollectionName();
-    const tokenMetadata = createTokenMetadata(collection);
+    const project = createProjectMetadata(dapp1Session.account.id);
+    const tokenMetadata = createTokenMetadata(project, collection);
     const tokenId = 0;
     const params: CrosschainTestParams = {
       dapp1Session,
       dapp2Session,
       tokenType: 'sft',
+      project,
       collection,
       tokenId,
       tokenMetadata,
@@ -141,22 +149,11 @@ describe('Crosschain', () => {
     await testCrossChainTransfer(params);
 
     // Verify
-    const metadataDapp2 = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: TEST_PROJECT, collection, token_id: tokenId });
+    const metadataDapp2 = await dapp2Session.query<TokenMetadata>("yours.metadata", { project: project.name, collection, token_id: tokenId });
     expect(metadataDapp2.properties.simple_property).toEqual(tokenMetadata.properties.simple_property);
     expect(metadataDapp2.properties.rich_property).toEqual(tokenMetadata.properties.rich_property);
     expect(metadataDapp2.properties.array_property).toEqual(tokenMetadata.properties.array_property);
   }, TIMEOUT_TEST);
-
-  type CrosschainTestParams = {
-    dapp1Session: Session;
-    dapp2Session: Session;
-    tokenType: 'nft' | 'sft';
-    collection: string;
-    tokenId: number;
-    tokenMetadata: TokenMetadata;
-    mintAmount: number;
-    transferAmount: number;
-  }
 
   const testCrossChainTransfer = async (params: CrosschainTestParams) => {
     if (params.tokenType === 'nft') {
@@ -166,13 +163,13 @@ describe('Crosschain', () => {
     } else {
       await params.dapp1Session.transactionBuilder()
         .add(op("importer.sft", serializeTokenMetadata(params.tokenMetadata)))
-        .add(op("importer.mint", TEST_PROJECT, params.collection, params.tokenId, params.mintAmount))
+        .add(op("importer.mint", params.project.name, params.collection, params.tokenId, params.mintAmount))
         .buildAndSend();
     }
 
     const metadata = await params.dapp1Session
       .query<TokenMetadata>("yours.metadata", {
-        project: TEST_PROJECT,
+        project: params.project.name,
         collection: params.collection,
         token_id: params.tokenId
       });
@@ -190,7 +187,7 @@ describe('Crosschain', () => {
       "yours.balance",
       {
         account_id: params.dapp1Session.account.id,
-        project: TEST_PROJECT,
+        project: params.project.name,
         collection: params.collection,
         token_id: params.tokenId
       }
@@ -201,7 +198,7 @@ describe('Crosschain', () => {
       "yours.balance",
       {
         account_id: params.dapp2Session.account.id,
-        project: TEST_PROJECT,
+        project: params.project.name,
         collection: params.collection,
         token_id: params.tokenId
       }
@@ -209,3 +206,15 @@ describe('Crosschain', () => {
     expect(dapp2Balance).toBe(params.transferAmount);
   };
 });
+
+type CrosschainTestParams = {
+  dapp1Session: Session;
+  dapp2Session: Session;
+  tokenType: 'nft' | 'sft';
+  project: ProjectMetadata;
+  collection: string;
+  tokenId: number;
+  tokenMetadata: TokenMetadata;
+  mintAmount: number;
+  transferAmount: number;
+}

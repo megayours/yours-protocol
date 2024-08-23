@@ -7,8 +7,13 @@ export type Attribute = {
 
 export type YoursMetadata = {
   modules: string[];
-  project: string;
+  project: ProjectMetadata;
   collection: string;
+};
+
+export type ProjectMetadata = {
+  name: string;
+  owner_id: Buffer;
 };
 
 export type Property = {

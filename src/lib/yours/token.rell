@@ -9,10 +9,15 @@
  * @param modules The modules of the token.
  */
 struct token_info {
-  project: name;
+  project: project_info;
   collection: name;
   name: name;
   modules: list<name>?;
+}
+
+struct project_info {
+  name: name;
+  owner_id: byte_array;
 }
 
 /**

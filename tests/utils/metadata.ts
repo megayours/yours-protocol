@@ -1,10 +1,9 @@
-import { TEST_PROJECT } from "./constants";
-import { TokenMetadata } from "./types";
+import { ProjectMetadata, TokenMetadata } from "./types";
 
 export function serializeTokenMetadata(metadata: TokenMetadata): any[] {
   const yours: any[] = [
     metadata.yours.modules,
-    metadata.yours.project,
+    [metadata.yours.project.name, metadata.yours.project.owner_id],
     metadata.yours.collection,
   ];
 
@@ -21,7 +20,12 @@ export function serializeTokenMetadata(metadata: TokenMetadata): any[] {
   return result;
 }
 
-export const createTokenMetadata = (collection: string, name: string = "A Test Token"): TokenMetadata => ({
+export const createProjectMetadata = (owner_id: Buffer): ProjectMetadata => ({
+  name: "Test Project:" + Date.now(),
+  owner_id
+});
+
+export const createTokenMetadata = (project: ProjectMetadata, collection: string, name: string = "A Test Token"): TokenMetadata => ({
   name,
   properties: {
     simple_property: "example value",
@@ -44,7 +48,7 @@ export const createTokenMetadata = (collection: string, name: string = "A Test T
   },
   yours: {
     modules: [],
-    project: TEST_PROJECT,
+    project,
     collection,
   },
   description: "A Test Description",

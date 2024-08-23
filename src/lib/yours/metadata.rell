@@ -37,7 +37,7 @@ struct token_metadata_outgoing {
  */
 struct yours_metadata {
   modules: list<name>;
-  project: name;
+  project: project_info;
   collection: name;
 }
 
@@ -63,12 +63,16 @@ function get_metadata(token): token_metadata_outgoing {
 
   base_metadata.put_all(metadata);
 
+  val project = token.collection.project;
   return token_metadata_outgoing(
     name = token.name,
     properties = base_metadata,
     yours = yours_metadata(
       collection = token.collection.name,
-      project = token.collection.project.name,
+      project = project_info(
+        name = project.name,
+        owner_id = project.owner_id
+      ),
       modules = token_module @* { token } ( .module_name ),
     ),
     description = token_description @? { token } ( .text ),

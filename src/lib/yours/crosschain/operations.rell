@@ -16,15 +16,19 @@ function () = ft4.auth.add_overridable_auth_handler(
  */
 operation init_transfer(
   recipient_id: byte_array,
-  project: name,
-  collection: name,
   token_id: integer,
   amount: integer,
   metadata: token_metadata_incoming
 ) {
   val account = ft4.auth.authenticate();
 
-  val token = require(get_token(project, collection, token_id), "Token Not Found");
+  val project_info = metadata.yours.project;
+  require(project @? { .name == project_info.name, .owner_id == project_info.owner_id } != null, "Invalid project");
+
+  val collection = metadata.yours.collection;
+
+  val token = require(get_token(project_info.name, collection, token_id), "Token Not Found");
+  require(project @? { .name == project_info.name, .owner_id == project_info.owner_id } != null, "Invalid project");
   require(get_balance(token, account) >= amount, "Insufficient balance");
   val existing_metadata = get_metadata(token);
 
@@ -88,7 +92,7 @@ operation apply_transfer(
 
   val transferred_metadata = init_transfer_details.args.metadata;
   var token = get_token(
-    transferred_metadata.yours.project,
+    transferred_metadata.yours.project.name,
     transferred_metadata.yours.collection,
     init_transfer_details.args.token_id
   );
