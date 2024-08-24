@@ -1,4 +1,4 @@
 [*.rell]
-max_line_width = 120
+max_line_width = 200
 insert_spaces = true
 tab_size = 2
