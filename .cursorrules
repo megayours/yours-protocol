@@ -1,42 +1,228 @@
-We are working with Rell, the following liks contains everything you need to know about this proparitary language. Please read it through properly so that you can act as my developer assistant.
+# Introduction to Rell
+Rell is designed to be expressive and concise, combining features from languages like SQL and Kotlin. It's specifically tailored for writing blockchain applications (dapps) on the Chromia platform.
+Key features:
+- Statically-typed
+- Blockchain-oriented
+- Built-in database operations
+- Modular design
 
-- https://docs.chromia.com/rell/rell-intro
-- https://docs.chromia.com/rell/core-concepts
-- https://docs.chromia.com/rell/modules
-- https://docs.chromia.com/rell/language-features/types/simple-types
-- https://docs.chromia.com/rell/language-features/types/complex-types
-- https://docs.chromia.com/rell/language-features/types/collection-types
-- https://docs.chromia.com/rell/language-features/types/iterables
-- https://docs.chromia.com/rell/language-features/types/virtual-types
-- https://docs.chromia.com/rell/language-features/types/sub-types
-- https://docs.chromia.com/rell/language-features/modules/entity
-- https://docs.chromia.com/rell/language-features/modules/object
-- https://docs.chromia.com/rell/language-features/modules/struct
-- https://docs.chromia.com/rell/language-features/modules/enum
-- https://docs.chromia.com/rell/language-features/modules/query
-- https://docs.chromia.com/rell/language-features/modules/operation
-- https://docs.chromia.com/rell/language-features/modules/function
-- https://docs.chromia.com/rell/language-features/modules/abstract
-- https://docs.chromia.com/rell/language-features/modules/namespace
-- https://docs.chromia.com/rell/language-features/modules/external
-- https://docs.chromia.com/rell/language-features/modules/mount
-- https://docs.chromia.com/rell/language-features/expressions/overview
-- https://docs.chromia.com/rell/language-features/expressions/operators
-- https://docs.chromia.com/rell/language-features/statements/local-variable
-- https://docs.chromia.com/rell/language-features/statements/basic-statements
-- https://docs.chromia.com/rell/language-features/statements/if-statement
-- https://docs.chromia.com/rell/language-features/statements/when-statement
-- https://docs.chromia.com/rell/language-features/statements/loop-statements
-- https://docs.chromia.com/rell/language-features/database/overview
-- https://docs.chromia.com/rell/language-features/database/create
-- https://docs.chromia.com/rell/language-features/database/update
-- https://docs.chromia.com/rell/language-features/database/delete
-- https://docs.chromia.com/rell/language-features/systemlib/system-entities
-- https://docs.chromia.com/rell/language-features/systemlib/namespaces/chain_context
-- https://docs.chromia.com/rell/language-features/systemlib/namespaces/op_context
-- https://docs.chromia.com/rell/language-features/systemlib/namespaces/crypto
-- https://docs.chromia.com/rell/language-features/systemlib/namespaces/meta
-- https://docs.chromia.com/rell/language-features/systemlib/global-functions
-- https://docs.chromia.com/rell/language-features/systemlib/require-function
-- https://docs.chromia.com/rell/language-features/systemlib/partial-functions
-- https://docs.chromia.com/rell/language-features/systemlib/system-queries
+# Core Concepts
+
+## Modules
+Rell code is organized into modules. A module is a collection of related declarations such as entities, operations, and functions.
+Example of a simple module:
+
+```
+module;
+
+entity user {
+  key username: text;
+  name: text;
+  age: integer;
+}
+
+function get_user(username: text) {
+  return user @? { .username == username };
+}
+
+query get_all_users() {
+  return user @* {};
+}
+```
+
+## Entities
+Entities are the primary way to define data structures in Rell. They correspond to database tables.
+
+```
+entity product {
+  key id: integer;
+  name: text;
+  price: decimal;
+  category: text;
+}
+```
+
+## Operations
+Operations are used to modify the blockchain state. They're similar to functions but are specifically for state-changing actions.
+
+```
+operation create_user(username: text, name: text, age: integer) {
+  create user(username, name, age);
+}
+```
+
+## Queries
+Queries are used to retrieve data from the blockchain without modifying the state.
+
+```
+query get_user_by_age(min_age: integer, max_age: integer) {
+  return user @* { .age >= min_age and .age <= max_age };
+}
+```
+
+# Language Features
+
+## Types
+Rell supports various types:
+- Simple Types:
+- integer: Whole numbers
+- decimal: Decimal numbers
+- boolean: True or false
+- text: Text strings
+- byte_array: Array of bytes
+
+Examples:
+```
+val age: integer = 25;
+val price: decimal = 19.99;
+val is_active: boolean = true;
+val name: text = "Alice";
+val data: byte_array = x"0A0B0C";
+```
+
+Complex Types:
+- list<T>: Ordered collection of elements
+- set<T>: Unordered collection of unique elements
+- map<K, V>: Key-value pairs
+
+```
+val numbers: list<integer> = [1, 2, 3, 4, 5];
+val unique_names: set<text> = {"Alice", "Bob", "Charlie"};
+val ages: map<text, integer> = {"Alice": 30, "Bob": 25, "Charlie": 35};
+```
+
+## Functions
+Functions in Rell are defined using the function keyword.
+
+Example:
+```
+function calculate_total(prices: list<decimal>): decimal {
+  return prices @ {} ( @sum($) );
+}
+```
+
+## Control Structures
+
+If Statement:
+```
+if (condition) {
+  // Code block
+} else if (not another_condition) {
+  // Code block
+} else {
+  // Code block
+}
+```
+
+When Statement (Similar to switch in other languages):
+```
+when (value) {
+  case1 -> // Code for case1
+  case2 -> // Code for case2
+  else -> // Default case
+}
+
+val result: text = when (age) {
+  case 18 -> "Adult"
+  case 13 -> "Teenager"
+  else -> "Child"
+}
+```
+
+Loop Statements:
+
+For loop:
+```
+for (item in collection) {
+  // Code block
+}
+```
+
+While loop:
+```
+while (condition) {
+  // Code block
+}
+```
+
+## Database Operations
+
+### Create:
+To create a new entity instance:
+```
+create user(username = "alice", name = "Alice Smith", age = 30);
+```
+
+### Update:
+To update an existing entity instance:
+
+```
+update entity @? { .key == value } (
+  field1 = new_value1,
+  field2 = new_value2
+);
+```
+
+### Delete:
+To delete an existing entity instance:
+```
+delete entity @? { .key == value };
+```
+
+## System Libraries
+Rell provides several system libraries for common operations:
+
+###chain_context:
+Provides information about the current blockchain state.
+```
+val current_block = chain_context.block_height;
+```
+
+### op_context:
+Provides information about the current operation context.
+
+```
+val signer = op_context.signer;
+```
+
+### crypto:
+Provides cryptographic functions.
+Example:
+
+```
+val hash = crypto.sha256("Hello, World!");
+```
+
+### require Function:
+Used for asserting conditions. If the condition is false, it throws an error.
+
+```
+function transfer(from: text, to: text, amount: decimal) {
+  require(amount > 0, "Amount must be positive");
+  // Transfer logic
+}
+```
+
+## Namespaces
+Namespaces are used to organize code and avoid naming conflicts.
+
+```
+namespace utils {
+  function helper1() { /* ... */ }
+  function helper2() { /* ... */ }
+}
+
+// Usage
+utils.helper1();
+```
+
+## Importing Modules
+Importing allows you to include entities from other modules in your current module.
+
+```
+import my_module;
+
+query get_data() {
+  return my_module.some_entity @* {};
+}
+```
