@@ -1,6 +1,14 @@
-const { spawnSync, exec } = require('child_process');
-const path = require('path');
-require('dotenv').config();
+import { spawnSync, exec } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { console } from 'console';
+import { process } from 'process';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
 
 const rellDirectory = path.join(__dirname, '..', 'rell');
 console.log('Executing tests for', rellDirectory);
@@ -19,8 +27,8 @@ async function test(config) {
   const currentWorkingDirectory = process.cwd();
   const baseCommand = `docker run --rm --network yours_network -v ${currentWorkingDirectory}:/usr/app ${process.env.CLI_IMAGE} chr test --use-db`;
   const command = config.tests
-    //? `${baseCommand} --sql-log --tests ${config.tests}`
-    ? `${baseCommand} --tests ${config.tests}`
+    ? //? `${baseCommand} --sql-log --tests ${config.tests}`
+      `${baseCommand} --tests ${config.tests}`
     : baseCommand;
 
   console.log(command);
@@ -45,8 +53,7 @@ async function main() {
   await test(config);
 }
 
-const prestartCommand =
-  'npm run prestart:test';
+const prestartCommand = 'npm run prestart:test';
 
 exec(`${prestartCommand}`, (err, stdout, stderr) => {
   if (err) {

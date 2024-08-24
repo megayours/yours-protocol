@@ -1,8 +1,10 @@
-const { exec } = require('child_process');
-const os = require('os');
-const dotenv = require('dotenv');
+import { exec } from 'child_process';
+import { config } from 'dotenv';
+import { cwd } from 'process';
+import { console } from 'console';
+import { process } from 'process';
 
-dotenv.config();
+config();
 
 function runCommand(command) {
   return new Promise((resolve, reject) => {
@@ -31,7 +33,7 @@ async function runCli(args) {
     // If 'chr' is not installed, run Docker command
     console.log(`Running Docker command for '${command}'`);
 
-    const currentDir = process.cwd();
+    const currentDir = cwd();
     const dockerCommand = `
     docker run \
           --mount type=bind,source="${currentDir}",target=/usr/app \
@@ -45,10 +47,8 @@ async function runCli(args) {
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
-  console.log('Please provide arguments. Usage: node lint.js <command> [args]');
+  console.log('Please provide arguments. Usage: node chr.js <command> [args]');
   process.exit(1);
 }
 
-(async () => {
-  await runCli(args);
-})();
+await runCli(args);
