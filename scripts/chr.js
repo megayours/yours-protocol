@@ -1,8 +1,7 @@
+/* global console, process */
 import { exec } from 'child_process';
 import { config } from 'dotenv';
 import { cwd } from 'process';
-import { console } from 'console';
-import { process } from 'process';
 
 config();
 
