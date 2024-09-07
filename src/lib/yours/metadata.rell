@@ -9,11 +9,9 @@ struct token_metadata_incoming {
   name;
   properties: json;
   yours: yours_metadata;
-  // decimals: integer?; // TODO: Add decimals
   description: text?;
   image: text?;
   animation_url: text?;
-  // localization: localization?; // TODO: Add localization
 }
 
 /**
@@ -25,11 +23,9 @@ struct token_metadata_outgoing {
   name;
   properties: map<text, gtv>;
   yours: yours_metadata;
-  // decimals: integer?; // TODO: Add decimals
   description: text?;
   image: text?;
   animation_url: text?;
-  // localization: localization?; // TODO: Add localization
 }
 
 /**
@@ -54,6 +50,7 @@ struct token_attribute {
  * as well as the token's modules on this chain that supports it.
  *
  * @param token The token to get the metadata for.
+ * @return token_metadata_outgoing The metadata for the token.
  */
 function get_metadata(token): token_metadata_outgoing {
   val base_metadata = imported_attributes @? {

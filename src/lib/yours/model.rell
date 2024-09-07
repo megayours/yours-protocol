@@ -1,8 +1,6 @@
 
 /**
  * A project that can contain multiple collections.
- * 
- * @param name The name of the project.
  */
 entity project {
   key name;
@@ -11,9 +9,6 @@ entity project {
 
 /**
  * A collection of tokens.
- * 
- * @param name The name of the collection.
- * @param project The project that this collection belongs to.
  */
 entity collection {
   key name, project;
@@ -22,9 +17,6 @@ entity collection {
 /**
  * The underlying token which can be either fungible or non-fungible.
  * Dapps are expected to create their own entities which references this token.
- * 
- * @param asset The FT4 asset that this token wraps.
- * @param collection The collection that this token belongs to.
  */
 entity token {
   key collection, id: integer;
@@ -38,9 +30,6 @@ entity token_balance {
 
 /**
  * The image for a token. Compatible with ERC721 OpenSea standard.
- * 
- * @param token The token.
- * @param url The URL of the image. This is mutable since the image can change.
  */
 entity token_image {
   key token;
@@ -49,9 +38,6 @@ entity token_image {
 
 /**
  * The animation for a token. Compatible with ERC721 OpenSea standard.
- * 
- * @param token The token.
- * @param url The URL of the animation. This is mutable since the animation can change.
  */
 entity token_animation {
   key token;
@@ -60,9 +46,6 @@ entity token_animation {
 
 /**
  * The description for a token. Compatible with ERC721 OpenSea standard.
- * 
- * @param token The token.
- * @param text The description. This is mutable since the description can change.
  */
 entity token_description {
   key token;
@@ -73,9 +56,6 @@ entity token_description {
  * Modules where tokens are allowed to operate within.
  * This is primarily used in order to prevent extendable functions with 
  * the wrong context from being executed.
- * 
- * @param token The token.
- * @param module_name The name of the module where the token has utility inside.
  */
 entity token_module {
   key token, module_name: name;
@@ -89,9 +69,6 @@ entity token_module {
  * In the above scenario `chain B` still need to persist metadata for module `B`,
  * since chain `B` has no idea about module `Y`. But if the tokens gets transferred 
  * to a chain `C` then we must not lose the metadata of module `Y`.
- * 
- * @param token The token that this attribute belongs to.
- * @param json The JSON representation of the attributes.
  */
 entity imported_attributes {
   key token;

@@ -1,12 +1,6 @@
 
 /**
  * The specification for a token.
- * 
- * @param name The name of the token.
- * @param symbol The symbol of the token.
- * @param decimals The number of decimals of the token.
- * @param icon_url The URL of the icon of the token.
- * @param modules The modules of the token.
  */
 struct token_info {
   project: project_info;
@@ -15,6 +9,9 @@ struct token_info {
   modules: list<name>?;
 }
 
+/**
+ * The specification for a project.
+ */
 struct project_info {
   name: name;
   owner_id: byte_array;
@@ -22,9 +19,6 @@ struct project_info {
 
 /**
  * The specification for a balance mutation.
- * 
- * @param account The account to mint or burn the token from.
- * @param amount The amount of the token to mint or burn.
  */
 struct balance_info {
   account: ft4.accounts.account;
@@ -33,10 +27,6 @@ struct balance_info {
 
 /**
  * The specification for a transfer.
- * 
- * @param from The account to transfer the token from.
- * @param to The account to transfer the token to.
- * @param amount The amount of the token to transfer.
  */
 struct transfer_info {
   from: ft4.accounts.account;
