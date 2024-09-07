@@ -110,7 +110,7 @@ operation apply_transfer(
   }
 
   _apply_transfer(
-    init_transfer_details.sender_account_id,
+    init_transfer_details.args.recipient_id,
     token,
     init_transfer_details.args.amount,
     transferred_metadata

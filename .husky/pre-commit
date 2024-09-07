@@ -1,2 +1,5 @@
 npx lint-staged
+chr code format --source-dir src/lib/yours
+#chr code lint --source-dir src/lib/yours
+git add --all
 npm run test:integration

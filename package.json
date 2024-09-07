@@ -15,7 +15,6 @@
   },
   "lint-staged": {
     "*": "prettier --ignore-unknown --write",
-    "*.rell": "chr code format && chr code lint",
     "*.{js,ts,tsx}": "eslint --fix"
   },
   "keywords": [],

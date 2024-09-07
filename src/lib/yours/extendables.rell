@@ -13,6 +13,12 @@ function before_init_transfer(token, ft4.accounts.account);
  * @param token to apply the transfer to
  */
 
+
+
+
+
+
+
 @extendable
 function after_init_transfer(token, ft4.accounts.account);
 
@@ -23,6 +29,12 @@ function after_init_transfer(token, ft4.accounts.account);
  * @param attributes the metadata for the transfer
  */
 
+
+
+
+
+
+
 @extendable
 function after_apply_transfer(token, modules: set<name>, properties: map<text, gtv>) {}
 
@@ -32,6 +44,12 @@ function after_apply_transfer(token, modules: set<name>, properties: map<text, g
  * @param token to apply the transfer to
  * @param modules to populate the metadata with
  */
+
+
+
+
+
+
 
 @extendable
 function populate_metadata(token, modules: set<name>): map<text, gtv>?;
