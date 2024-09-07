@@ -11,7 +11,7 @@ export default tseslint.config(
     },
     files: ['**/*.ts', '**/*.tsx'],
     rules: {
-      // Add your custom rules here
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   }
 );

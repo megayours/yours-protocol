@@ -3,7 +3,7 @@
  * A project that can contain multiple collections.
  */
 entity project {
-  key name;
+  key name, blockchain_rid: byte_array;
   index mutable owner_id: byte_array;
 }
 

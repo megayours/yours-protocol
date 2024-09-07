@@ -3,7 +3,6 @@ module;
 import .importer;
 
 import lib.yours;
-import lib.yours.crosschain;
 import lib.iccf;
 import lib.ft4.accounts.strategies.open;
 

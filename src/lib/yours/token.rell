@@ -14,6 +14,7 @@ struct token_info {
  */
 struct project_info {
   name: name;
+  blockchain_rid: byte_array;
   owner_id: byte_array;
 }
 

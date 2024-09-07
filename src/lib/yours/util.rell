@@ -1,5 +1,12 @@
 function ensure_project(project_info) {
-  return project @? { project_info.name } ?: create project ( project_info.name, project_info.owner_id );
+  return project @? {
+    project_info.name,
+    .blockchain_rid == project_info.blockchain_rid
+  } ?: create project (
+    project_info.name,
+    blockchain_rid = project_info.blockchain_rid,
+    owner_id = project_info.owner_id
+  );
 }
 
 function ensure_collection(name, project) {

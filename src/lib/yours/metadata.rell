@@ -68,6 +68,7 @@ function get_metadata(token): token_metadata_outgoing {
       collection = token.collection.name,
       project = project_info(
         name = project.name,
+        blockchain_rid = project.blockchain_rid,
         owner_id = project.owner_id
       ),
       modules = token_module @* { token } ( .module_name ),

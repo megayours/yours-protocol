@@ -241,3 +241,50 @@ function _get_init_transfer_details(tx: gtx_transaction, op_index: integer) {
     sender_account_id = sender_account_id
   );
 }
+
+query get_pending_transfers_for_account(account_id: byte_array) {
+  return pending_transfer @? {
+    .sender.id == account_id
+  } (
+    tx_data = .transaction.tx_data,
+    op_index = .op_index
+  );
+}
+
+entity applied_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+  transaction;
+  op_index: integer;
+}
+
+entity canceled_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}
+
+entity unapplied_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}
+
+entity recalled_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}
+
+entity pending_transfer {
+  key transaction, op_index;
+  op_index: integer;
+  index sender: ft4.accounts.account;
+}
+
+entity reverted_transfer {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}
