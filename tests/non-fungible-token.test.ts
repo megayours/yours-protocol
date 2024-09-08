@@ -16,11 +16,7 @@ describe('Non-Fungible Token', () => {
   }, TIMEOUT_SETUP);
 
   afterAll(async () => {
-    await teardown(
-      environment.network,
-      environment.chromiaNode,
-      environment.postgres
-    );
+    await teardown(environment.network, environment.chromiaNode, environment.postgres);
   }, TIMEOUT_SETUP);
 
   it(
@@ -29,10 +25,7 @@ describe('Non-Fungible Token', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
-      );
+      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
@@ -60,10 +53,7 @@ describe('Non-Fungible Token', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
-      );
+      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
@@ -82,27 +72,15 @@ describe('Non-Fungible Token', () => {
         token_id: tokenId,
       });
       expect(metadata.name).toBe(tokenMetadata.name);
-      expect(metadata.properties['rich_property']['name']).toEqual(
-        tokenMetadata.properties.rich_property['name']
+      expect(metadata.properties['rich_property']['name']).toEqual(tokenMetadata.properties.rich_property['name']);
+      expect(metadata.properties['rich_property']['value']).toEqual(tokenMetadata.properties.rich_property['value']);
+      expect(metadata.properties['rich_property']['display_value']).toEqual(tokenMetadata.properties.rich_property['display_value']);
+      expect(metadata.properties['rich_property']['class']).toEqual(tokenMetadata.properties.rich_property['class']);
+      expect(metadata.properties['rich_property']['css']['color']).toEqual(tokenMetadata.properties.rich_property['css']['color']);
+      expect(metadata.properties['rich_property']['css']['font-weight']).toEqual(
+        tokenMetadata.properties.rich_property['css']['font-weight']
       );
-      expect(metadata.properties['rich_property']['value']).toEqual(
-        tokenMetadata.properties.rich_property['value']
-      );
-      expect(metadata.properties['rich_property']['display_value']).toEqual(
-        tokenMetadata.properties.rich_property['display_value']
-      );
-      expect(metadata.properties['rich_property']['class']).toEqual(
-        tokenMetadata.properties.rich_property['class']
-      );
-      expect(metadata.properties['rich_property']['css']['color']).toEqual(
-        tokenMetadata.properties.rich_property['css']['color']
-      );
-      expect(
-        metadata.properties['rich_property']['css']['font-weight']
-      ).toEqual(tokenMetadata.properties.rich_property['css']['font-weight']);
-      expect(
-        metadata.properties['rich_property']['css']['text-decoration']
-      ).toEqual(
+      expect(metadata.properties['rich_property']['css']['text-decoration']).toEqual(
         tokenMetadata.properties.rich_property['css']['text-decoration']
       );
       expect(metadata.yours.modules).toBeDefined();

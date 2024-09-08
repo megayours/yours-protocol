@@ -1,17 +1,8 @@
 import { config } from 'dotenv';
 import { cwd } from 'process';
 import { IClient, createClient } from 'postchain-client';
-import {
-  GenericContainer,
-  Network,
-  StartedNetwork,
-  StartedTestContainer,
-  Wait,
-} from 'testcontainers';
-import {
-  PostgreSqlContainer,
-  StartedPostgreSqlContainer,
-} from '@testcontainers/postgresql';
+import { GenericContainer, Network, StartedNetwork, StartedTestContainer, Wait } from 'testcontainers';
+import { PostgreSqlContainer, StartedPostgreSqlContainer } from '@testcontainers/postgresql';
 
 config();
 
@@ -35,11 +26,7 @@ export async function getTestEnvironment(): Promise<TestEnvironment> {
     .withPassword('postchain')
     .withUsername('postchain')
     .withNetworkAliases('postgres')
-    .withWaitStrategy(
-      Wait.forLogMessage(
-        'database system is ready to accept connections'
-      ).withStartupTimeout(15000)
-    )
+    .withWaitStrategy(Wait.forLogMessage('database system is ready to accept connections').withStartupTimeout(15000))
     .start();
 
   const chromiaNodePort = 7740;
@@ -51,19 +38,8 @@ export async function getTestEnvironment(): Promise<TestEnvironment> {
     .withEnvironment({
       CHR_DB_URL: 'jdbc:postgresql://postgres/postchain',
     })
-    .withCommand([
-      'chr',
-      'node',
-      'start',
-      '--directory-chain-mock',
-      '-p',
-      `api.port=${chromiaNodePort}`,
-    ])
-    .withWaitStrategy(
-      Wait.forLogMessage(
-        'chain-id=2] - [main] BaseBlockchainProcessManager startBlockchain()'
-      ).withStartupTimeout(60000)
-    )
+    .withCommand(['chr', 'node', 'start', '--directory-chain-mock', '-p', `api.port=${chromiaNodePort}`])
+    .withWaitStrategy(Wait.forLogMessage('chain-id=2] - [main] BaseBlockchainProcessManager startBlockchain()').withStartupTimeout(60000))
     .start();
 
   const nodePort = chromiaNode.getMappedPort(chromiaNodePort);
@@ -87,11 +63,7 @@ export async function getTestEnvironment(): Promise<TestEnvironment> {
   };
 }
 
-export async function teardown(
-  network: StartedNetwork,
-  chromiaNode: StartedTestContainer,
-  postgres: StartedPostgreSqlContainer
-) {
+export async function teardown(network: StartedNetwork, chromiaNode: StartedTestContainer, postgres: StartedPostgreSqlContainer) {
   await chromiaNode.stop();
   await postgres.stop();
   await network.stop();

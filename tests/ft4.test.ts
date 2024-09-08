@@ -1,7 +1,7 @@
-import { encryption } from "postchain-client";
-import { createAccount } from "./utils/ft4";
-import { getTestEnvironment, teardown, TestEnvironment } from "./utils/setup";
-import { TIMEOUT_SETUP } from "./utils/constants";
+import { encryption } from 'postchain-client';
+import { createAccount } from './utils/ft4';
+import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
+import { TIMEOUT_SETUP } from './utils/constants';
 
 describe('FT4', () => {
   let environment: TestEnvironment;

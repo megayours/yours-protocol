@@ -24,11 +24,7 @@ describe('ERC1155', () => {
   }, TIMEOUT_SETUP);
 
   afterAll(async () => {
-    await teardown(
-      environment.network,
-      environment.chromiaNode,
-      environment.postgres
-    );
+    await teardown(environment.network, environment.chromiaNode, environment.postgres);
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }, TIMEOUT_SETUP);
 
@@ -38,10 +34,7 @@ describe('ERC1155', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
-      );
+      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
@@ -54,36 +47,21 @@ describe('ERC1155', () => {
         .add(op('importer.nft', serializedMetadata, tokenId))
         .buildAndSend();
 
-      const metadata = await session.query<ERC1155Metadata>(
-        'erc1155.metadata',
-        {
-          project: project.name,
-          collection,
-          token_id: tokenId,
-        }
-      );
+      const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {
+        project: project.name,
+        collection,
+        token_id: tokenId,
+      });
       expect(metadata.name).toBe(tokenMetadata.name);
-      expect(metadata.properties['rich_property']['name']).toEqual(
-        tokenMetadata.properties.rich_property['name']
+      expect(metadata.properties['rich_property']['name']).toEqual(tokenMetadata.properties.rich_property['name']);
+      expect(metadata.properties['rich_property']['value']).toEqual(tokenMetadata.properties.rich_property['value']);
+      expect(metadata.properties['rich_property']['display_value']).toEqual(tokenMetadata.properties.rich_property['display_value']);
+      expect(metadata.properties['rich_property']['class']).toEqual(tokenMetadata.properties.rich_property['class']);
+      expect(metadata.properties['rich_property']['css']['color']).toEqual(tokenMetadata.properties.rich_property['css']['color']);
+      expect(metadata.properties['rich_property']['css']['font-weight']).toEqual(
+        tokenMetadata.properties.rich_property['css']['font-weight']
       );
-      expect(metadata.properties['rich_property']['value']).toEqual(
-        tokenMetadata.properties.rich_property['value']
-      );
-      expect(metadata.properties['rich_property']['display_value']).toEqual(
-        tokenMetadata.properties.rich_property['display_value']
-      );
-      expect(metadata.properties['rich_property']['class']).toEqual(
-        tokenMetadata.properties.rich_property['class']
-      );
-      expect(metadata.properties['rich_property']['css']['color']).toEqual(
-        tokenMetadata.properties.rich_property['css']['color']
-      );
-      expect(
-        metadata.properties['rich_property']['css']['font-weight']
-      ).toEqual(tokenMetadata.properties.rich_property['css']['font-weight']);
-      expect(
-        metadata.properties['rich_property']['css']['text-decoration']
-      ).toEqual(
+      expect(metadata.properties['rich_property']['css']['text-decoration']).toEqual(
         tokenMetadata.properties.rich_property['css']['text-decoration']
       );
 
@@ -104,10 +82,7 @@ describe('ERC1155', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
-      );
+      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
@@ -117,39 +92,22 @@ describe('ERC1155', () => {
         .add(op('importer.mint', project.name, collection, 0, 1))
         .buildAndSend();
 
-      const metadata = await session.query<ERC1155Metadata>(
-        'erc1155.metadata',
-        {
-          project: project.name,
-          collection,
-          token_id: 0,
-        }
-      );
+      const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {
+        project: project.name,
+        collection,
+        token_id: 0,
+      });
       expect(metadata.name).toBe(tokenMetadata.name);
-      expect(metadata.properties['simple_property']).toEqual(
-        tokenMetadata.properties.simple_property
+      expect(metadata.properties['simple_property']).toEqual(tokenMetadata.properties.simple_property);
+      expect(metadata.properties['rich_property']['name']).toEqual(tokenMetadata.properties.rich_property['name']);
+      expect(metadata.properties['rich_property']['value']).toEqual(tokenMetadata.properties.rich_property['value']);
+      expect(metadata.properties['rich_property']['display_value']).toEqual(tokenMetadata.properties.rich_property['display_value']);
+      expect(metadata.properties['rich_property']['class']).toEqual(tokenMetadata.properties.rich_property['class']);
+      expect(metadata.properties['rich_property']['css']['color']).toEqual(tokenMetadata.properties.rich_property['css']['color']);
+      expect(metadata.properties['rich_property']['css']['font-weight']).toEqual(
+        tokenMetadata.properties.rich_property['css']['font-weight']
       );
-      expect(metadata.properties['rich_property']['name']).toEqual(
-        tokenMetadata.properties.rich_property['name']
-      );
-      expect(metadata.properties['rich_property']['value']).toEqual(
-        tokenMetadata.properties.rich_property['value']
-      );
-      expect(metadata.properties['rich_property']['display_value']).toEqual(
-        tokenMetadata.properties.rich_property['display_value']
-      );
-      expect(metadata.properties['rich_property']['class']).toEqual(
-        tokenMetadata.properties.rich_property['class']
-      );
-      expect(metadata.properties['rich_property']['css']['color']).toEqual(
-        tokenMetadata.properties.rich_property['css']['color']
-      );
-      expect(
-        metadata.properties['rich_property']['css']['font-weight']
-      ).toEqual(tokenMetadata.properties.rich_property['css']['font-weight']);
-      expect(
-        metadata.properties['rich_property']['css']['text-decoration']
-      ).toEqual(
+      expect(metadata.properties['rich_property']['css']['text-decoration']).toEqual(
         tokenMetadata.properties.rich_property['css']['text-decoration']
       );
 

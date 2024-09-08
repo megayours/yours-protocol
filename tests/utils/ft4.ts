@@ -1,5 +1,13 @@
-import { IClient, KeyPair } from "postchain-client";
-import { createInMemoryFtKeyStore, createKeyStoreInteractor, createSingleSigAuthDescriptorRegistration, hours, registerAccount, ttlLoginRule, registrationStrategy } from "@chromia/ft4";
+import { IClient, KeyPair } from 'postchain-client';
+import {
+  createInMemoryFtKeyStore,
+  createKeyStoreInteractor,
+  createSingleSigAuthDescriptorRegistration,
+  hours,
+  registerAccount,
+  ttlLoginRule,
+  registrationStrategy,
+} from '@chromia/ft4';
 
 export async function createAccount(client: IClient, keyPair: KeyPair) {
   const keyStore = createInMemoryFtKeyStore(keyPair);
@@ -7,16 +15,20 @@ export async function createAccount(client: IClient, keyPair: KeyPair) {
 
   const accounts = await keyStoreInteractor.getAccounts();
   if (accounts.length > 0) {
-    throw new Error("Account already exists");
+    throw new Error('Account already exists');
   }
 
-  const authDescriptor = createSingleSigAuthDescriptorRegistration(["A", "T"], keyPair.pubKey);
-  const { session } = await registerAccount(client, keyStore, registrationStrategy.open(authDescriptor, {
-    config: {
-      rules: ttlLoginRule(hours(1)),
-      flags: []
-    }
-  }));
+  const authDescriptor = createSingleSigAuthDescriptorRegistration(['A', 'T'], keyPair.pubKey);
+  const { session } = await registerAccount(
+    client,
+    keyStore,
+    registrationStrategy.open(authDescriptor, {
+      config: {
+        rules: ttlLoginRule(hours(1)),
+        flags: [],
+      },
+    })
+  );
 
   return session;
 }
