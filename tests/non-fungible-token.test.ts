@@ -108,9 +108,6 @@ describe('Non-Fungible Token', () => {
       expect(metadata.yours.modules).toBeDefined();
       expect(metadata.yours.project).toEqual(tokenMetadata.yours.project);
       expect(metadata.yours.collection).toEqual(tokenMetadata.yours.collection);
-      expect(metadata.description).toBe(tokenMetadata.description);
-      expect(metadata.image).toBe(tokenMetadata.image);
-      expect(metadata.animation_url).toBe(tokenMetadata.animation_url);
     },
     TIMEOUT_TEST
   );

@@ -28,9 +28,10 @@ operation nft(metadata: yours.token_metadata_incoming, token_id: integer) {
 
   create yours.imported_attributes ( token, json = metadata.properties );
 
-  yours.attach_image(token, metadata.image);
-  yours.attach_description(token, metadata.description);
-  yours.attach_animation(token, metadata.animation_url);
+  erc1155.attach(token);
+  erc1155.attach_image(token, metadata.image);
+  erc1155.attach_description(token, metadata.description);
+  erc1155.attach_animation(token, metadata.animation_url);
 
   shared_module.attach(token);
   tracker.attach(token);
@@ -62,9 +63,10 @@ operation sft(metadata: yours.token_metadata_incoming) {
 
   create yours.imported_attributes ( token, json = metadata.properties );
 
-  yours.attach_image(token, metadata.image);
-  yours.attach_description(token, metadata.description);
-  yours.attach_animation(token, metadata.animation_url);
+  erc1155.attach(token);
+  erc1155.attach_image(token, metadata.image);
+  erc1155.attach_description(token, metadata.description);
+  erc1155.attach_animation(token, metadata.animation_url);
 
   shared_module.attach(token);
   tracker.attach(token);

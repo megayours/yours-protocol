@@ -34,4 +34,4 @@ function after_apply_transfer(token, modules: set<name>, properties: map<text, g
  * @param modules to populate the metadata with
  */
 @extendable
-function populate_metadata(token, modules: set<name>): map<text, gtv>?;
+function populate_metadata(token, modules: set<name>): map<text, gtv>;

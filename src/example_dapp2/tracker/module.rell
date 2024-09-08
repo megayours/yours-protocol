@@ -6,12 +6,12 @@ entity tracker {
 }
 
 @extend(yours.populate_metadata)
-function populate_metadata(yours.token, modules: set<name>): map<text, gtv>? {
-  if (not modules.contains("tracker")) return null;
+function populate_metadata(yours.token, modules: set<name>): map<text, gtv> {
   val metadata = map<text, gtv>();
+  if (not modules.contains("tracker")) return metadata;
 
   val tracker = tracker @? { token };
-  if (tracker == null) return null;
+  if (tracker == null) return metadata;
 
   metadata.put("Recent Fishing Game Visit", tracker.last_block_time.to_gtv());
 

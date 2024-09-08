@@ -3,6 +3,8 @@ module;
 import .importer;
 
 import lib.yours;
+import lib.erc1155;
+
 import lib.iccf;
 import lib.ft4.accounts.strategies.open;
 

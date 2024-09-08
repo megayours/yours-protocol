@@ -6,9 +6,17 @@ import { op } from '@chromia/ft4';
 import { createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
-import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
+import { serializeTokenMetadata } from '@megayours/sdk';
 
-describe('Semi-Fungible Token', () => {
+type ERC1155Metadata = {
+  name: string;
+  properties: Record<string, any>;
+  description: string;
+  image: string;
+  animation_url: string;
+};
+
+describe('ERC1155', () => {
   let environment: TestEnvironment;
 
   beforeAll(async () => {
@@ -25,7 +33,7 @@ describe('Semi-Fungible Token', () => {
   }, TIMEOUT_SETUP);
 
   it(
-    'able to create a Semi-Fungible Token',
+    'NFT has correct metadata',
     async () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
@@ -37,41 +45,55 @@ describe('Semi-Fungible Token', () => {
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
+      const tokenId = 1;
+
+      const serializedMetadata = serializeTokenMetadata(tokenMetadata);
+
       await session
         .transactionBuilder()
-        .add(op('importer.sft', serializeTokenMetadata(tokenMetadata)))
+        .add(op('importer.nft', serializedMetadata, tokenId))
         .buildAndSend();
-    },
-    TIMEOUT_TEST
-  );
 
-  it(
-    'able to mint a Semi-Fungible Token',
-    async () => {
-      const keyPair = encryption.makeKeyPair();
-      const session = await createAccount(environment.dapp1Client, keyPair);
-
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
+      const metadata = await session.query<ERC1155Metadata>(
+        'erc1155.metadata',
+        {
+          project: project.name,
+          collection,
+          token_id: tokenId,
+        }
       );
-      const collection = randomCollectionName();
-      const tokenMetadata = createTokenMetadata(project, collection);
+      expect(metadata.name).toBe(tokenMetadata.name);
+      expect(metadata.properties['rich_property']['name']).toEqual(
+        tokenMetadata.properties.rich_property['name']
+      );
+      expect(metadata.properties['rich_property']['value']).toEqual(
+        tokenMetadata.properties.rich_property['value']
+      );
+      expect(metadata.properties['rich_property']['display_value']).toEqual(
+        tokenMetadata.properties.rich_property['display_value']
+      );
+      expect(metadata.properties['rich_property']['class']).toEqual(
+        tokenMetadata.properties.rich_property['class']
+      );
+      expect(metadata.properties['rich_property']['css']['color']).toEqual(
+        tokenMetadata.properties.rich_property['css']['color']
+      );
+      expect(
+        metadata.properties['rich_property']['css']['font-weight']
+      ).toEqual(tokenMetadata.properties.rich_property['css']['font-weight']);
+      expect(
+        metadata.properties['rich_property']['css']['text-decoration']
+      ).toEqual(
+        tokenMetadata.properties.rich_property['css']['text-decoration']
+      );
 
-      const mintAmount = 2;
-      await session
-        .transactionBuilder()
-        .add(op('importer.sft', serializeTokenMetadata(tokenMetadata)))
-        .add(op('importer.mint', project.name, collection, 0, mintAmount))
-        .buildAndSend();
+      expect(metadata.properties['image']).toBe(undefined);
+      expect(metadata.properties['animation_url']).toBe(undefined);
+      expect(metadata.properties['description']).toBe(undefined);
 
-      const balance = await session.query<number>('yours.balance', {
-        account_id: session.account.id,
-        project: project.name,
-        collection,
-        token_id: 0,
-      });
-      expect(balance).toBe(mintAmount);
+      expect(metadata.description).toBe(tokenMetadata.description);
+      expect(metadata.image).toBe(tokenMetadata.image);
+      expect(metadata.animation_url).toBe(tokenMetadata.animation_url);
     },
     TIMEOUT_TEST
   );
@@ -95,11 +117,14 @@ describe('Semi-Fungible Token', () => {
         .add(op('importer.mint', project.name, collection, 0, 1))
         .buildAndSend();
 
-      const metadata = await session.query<TokenMetadata>('yours.metadata', {
-        project: project.name,
-        collection,
-        token_id: 0,
-      });
+      const metadata = await session.query<ERC1155Metadata>(
+        'erc1155.metadata',
+        {
+          project: project.name,
+          collection,
+          token_id: 0,
+        }
+      );
       expect(metadata.name).toBe(tokenMetadata.name);
       expect(metadata.properties['simple_property']).toEqual(
         tokenMetadata.properties.simple_property
@@ -127,9 +152,14 @@ describe('Semi-Fungible Token', () => {
       ).toEqual(
         tokenMetadata.properties.rich_property['css']['text-decoration']
       );
-      expect(metadata.yours.modules).toBeDefined();
-      expect(metadata.yours.project).toEqual(tokenMetadata.yours.project);
-      expect(metadata.yours.collection).toEqual(tokenMetadata.yours.collection);
+
+      expect(metadata.properties['image']).toBe(undefined);
+      expect(metadata.properties['animation_url']).toBe(undefined);
+      expect(metadata.properties['description']).toBe(undefined);
+
+      expect(metadata.description).toBe(tokenMetadata.description);
+      expect(metadata.image).toBe(tokenMetadata.image);
+      expect(metadata.animation_url).toBe(tokenMetadata.animation_url);
     },
     TIMEOUT_TEST
   );

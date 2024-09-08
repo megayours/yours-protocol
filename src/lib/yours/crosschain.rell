@@ -49,9 +49,6 @@ operation init_transfer(
 
 function _validate_metadata(incoming: token_metadata_incoming, outgoing: token_metadata_outgoing) {
   require(incoming.name == outgoing.name, "Invalid Metadata");
-  require(incoming.description == outgoing.description, "Invalid Metadata");
-  require(incoming.image == outgoing.image, "Invalid Metadata");
-  require(incoming.animation_url == outgoing.animation_url, "Invalid Metadata");
   _validate_properties(incoming, outgoing);
 }
 
@@ -178,9 +175,6 @@ function _apply_transfer(account_id: byte_array, token, amount: integer, token_m
 }
 
 function _apply_common_metadata(token, metadata: token_metadata_incoming) {
-  attach_image(token, metadata.image);
-  attach_description(token, metadata.description);
-  attach_animation(token, metadata.animation_url);
   attach_modules(token, metadata.yours.modules);
 }
 

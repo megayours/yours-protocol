@@ -29,30 +29,6 @@ entity token_balance {
 }
 
 /**
- * The image for a token. Compatible with ERC721 OpenSea standard.
- */
-entity token_image {
-  key token;
-  mutable url: text;
-}
-
-/**
- * The animation for a token. Compatible with ERC721 OpenSea standard.
- */
-entity token_animation {
-  key token;
-  mutable url: text;
-}
-
-/**
- * The description for a token. Compatible with ERC721 OpenSea standard.
- */
-entity token_description {
-  key token;
-  mutable text;
-}
-
-/**
  * Modules where tokens are allowed to operate within.
  * This is primarily used in order to prevent extendable functions with 
  * the wrong context from being executed.

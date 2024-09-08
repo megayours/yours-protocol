@@ -2,7 +2,7 @@
 function after_apply_transfer(yours.token, modules: set<name>, properties: map<text, gtv>) {
   if (modules.contains("times_bridged")) {
     val times_bridged = times_bridged @? { token };
-    val times_bridged_property = try_call(integer.from_gtv(properties["times_bridged"], *)) ?: 1;
+    val times_bridged_property = try_call(integer.from_gtv(properties.get_or_default("times_bridged", integer(0).to_gtv()), *)) ?: 0;
     if (times_bridged == null) {
       create times_bridged ( token = token, amount = times_bridged_property + 1 );
     } else {
@@ -12,13 +12,13 @@ function after_apply_transfer(yours.token, modules: set<name>, properties: map<t
 }
 
 @extend(yours.populate_metadata)
-function populate_metadata(yours.token, modules: set<name>): map<text, gtv>? {
-  if (not modules.contains("times_bridged")) return null;
+function populate_metadata(yours.token, modules: set<name>): map<text, gtv> {
+  val metadata = map<text, gtv>();
+  if (not modules.contains("times_bridged")) return metadata;
 
   val times_bridged = times_bridged @? { token };
-  if (times_bridged == null) return null;
+  if (times_bridged == null) return metadata;
 
-  val metadata = map<text, gtv>();
   metadata.put("times_bridged", times_bridged.amount.to_gtv());
   return metadata;
 }

@@ -115,6 +115,7 @@ describe('Crosschain', () => {
         'yours.metadata',
         { project: project.name, collection, token_id: tokenId }
       );
+
       await performCrossChainTransfer(
         dapp2Session,
         environment.dapp1Client,
@@ -129,6 +130,7 @@ describe('Crosschain', () => {
         'yours.metadata',
         { project: project.name, collection, token_id: tokenId }
       );
+
       expect(sourceMetadata.properties['times_bridged']).toEqual(2);
     },
     TIMEOUT_TEST
