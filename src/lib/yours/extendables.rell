@@ -27,3 +27,27 @@
  * @param modules to populate the metadata with
  */
 @extendable function populate_metadata(token, modules: set<name>): map<text, gtv>?;
+
+/**
+ * Allows a caller to hook into the burn process and apply custom logic that has to be executed before.
+ *
+ * @param token to be burned
+ */
+@extendable
+function before_burn(token, ft4.accounts.account, amount: integer) {}
+
+/**
+ * Allows a caller to hook into the transfer process and apply custom logic that has to be executed before.
+ *
+ * @param token to be transferred
+ */
+@extendable
+function before_transfer(token, ft4.accounts.account, amount: integer) {}
+
+/**
+ * Allows a caller to hook into the mint process and apply custom logic that has to be executed before.
+ *
+ * @param token to be minted
+ */
+@extendable
+function before_mint(token, ft4.accounts.account, amount: integer) {}
