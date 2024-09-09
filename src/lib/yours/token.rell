@@ -154,6 +154,16 @@ function attach_module(token, module_name: name) {
 }
 
 /**
+ * Check if a token has a module.
+ *
+ * @param token to check
+ * @param name of the module
+ */
+function has_module(token, name): boolean {
+  return token_module @? { token, name } != null;
+}
+
+/**
  * Mint tokens to a specific account.
  *
  * @param token the token to mint from
