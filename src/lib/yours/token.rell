@@ -102,7 +102,9 @@ function has_module(token, name): boolean {
  * @param info the information for the mint
  */
 function mint(token, info: balance_info) {
+  before_mint(token, info.account, info.amount);
   _mint_balance(token, info.account, info.amount);
+  after_mint(token, info.account, info.amount);
 }
 
 /**
@@ -112,7 +114,9 @@ function mint(token, info: balance_info) {
  * @param info the information for the burn
  */
 function burn(token, info: balance_info) {
+  before_burn(token, info.account, info.amount);
   _burn_balance(token, info.account, info.amount);
+  after_burn(token, info.account, info.amount);
 }
 
 /**
@@ -122,8 +126,10 @@ function burn(token, info: balance_info) {
  * @param info the information for the transfer
  */
 function transfer(token, info: transfer_info) {
+  before_transfer(token, info.from, info.to, info.amount);
   _burn_balance(token, info.from, info.amount);
   _mint_balance(token, info.to, info.amount);
+  after_transfer(token, info.from, info.to, info.amount);
 }
 
 /**
