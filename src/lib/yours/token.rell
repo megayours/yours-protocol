@@ -59,70 +59,6 @@ function create_token(info: token_info): token {
 }
 
 /**
- * Attach an animation to a token.
- *
- * @param token to attach the animation to
- * @param animation_url to attach
- */
-function attach_animation(token, animation_url: text?): token_animation? {
-  val token_animation = token_animation @? { token };
-  val existing_animation = token_animation?.url;
-
-  if (existing_animation == animation_url) return token_animation;
-  if (token_animation != null and existing_animation != animation_url) {
-    delete token_animation;
-  }
-
-  if (animation_url != null) {
-    return create token_animation ( token, animation_url );
-  }
-  return null;
-}
-
-/**
- * Attach a description to a token.
- *
- * @param token to attach the description to
- * @param description to attach
- */
-function attach_description(token, description: text?): token_description? {
-  val token_description = token_description @? { token };
-  val existing_description = token_description?.text;
-
-  if (existing_description == description) return token_description;
-  if (token_description != null and existing_description != description) {
-    delete token_description;
-  }
-
-  if (description != null) {
-    return create token_description ( token, description );
-  }
-  return null;
-}
-
-/**
- * Attach an image to a token.
- *
- * @param token to update the image for
- * @param image_url to update
- */
-function attach_image(token, image_url: text?): token_image? {
-  val token_image = token_image @? { token };
-  val existing_image = token_image?.url;
-
-  if (existing_image == image_url) return token_image;
-  if (token_image != null and existing_image != image_url) {
-    delete token_image;
-  }
-
-  if (image_url != null) {
-    return create token_image ( token, image_url );
-  }
-
-  return null;
-}
-
-/**
  * Attach modules to a token.
  *
  * @param token to attach the modules to
@@ -147,6 +83,16 @@ function attach_module(token, module_name: name) {
   if (token_module @? { token, name } == null) {
     create token_module ( token, name );
   }
+}
+
+/**
+ * Check if a token has a module.
+ *
+ * @param token to check
+ * @param name of the module
+ */
+function has_module(token, name): boolean {
+  return token_module @? { token, name } != null;
 }
 
 /**

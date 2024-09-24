@@ -16,11 +16,7 @@ describe('Semi-Fungible Token', () => {
   }, TIMEOUT_SETUP);
 
   afterAll(async () => {
-    await teardown(
-      environment.network,
-      environment.chromiaNode,
-      environment.postgres
-    );
+    await teardown(environment.network, environment.chromiaNode, environment.postgres);
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }, TIMEOUT_SETUP);
 
@@ -30,10 +26,7 @@ describe('Semi-Fungible Token', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
-      );
+      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
@@ -51,10 +44,7 @@ describe('Semi-Fungible Token', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
-      );
+      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
@@ -82,10 +72,7 @@ describe('Semi-Fungible Token', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(
-        session.account.id,
-        environment.dapp1Client.config.blockchainRid
-      );
+      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
 
@@ -101,38 +88,21 @@ describe('Semi-Fungible Token', () => {
         token_id: 0,
       });
       expect(metadata.name).toBe(tokenMetadata.name);
-      expect(metadata.properties['simple_property']).toEqual(
-        tokenMetadata.properties.simple_property
+      expect(metadata.properties['simple_property']).toEqual(tokenMetadata.properties.simple_property);
+      expect(metadata.properties['rich_property']['name']).toEqual(tokenMetadata.properties.rich_property['name']);
+      expect(metadata.properties['rich_property']['value']).toEqual(tokenMetadata.properties.rich_property['value']);
+      expect(metadata.properties['rich_property']['display_value']).toEqual(tokenMetadata.properties.rich_property['display_value']);
+      expect(metadata.properties['rich_property']['class']).toEqual(tokenMetadata.properties.rich_property['class']);
+      expect(metadata.properties['rich_property']['css']['color']).toEqual(tokenMetadata.properties.rich_property['css']['color']);
+      expect(metadata.properties['rich_property']['css']['font-weight']).toEqual(
+        tokenMetadata.properties.rich_property['css']['font-weight']
       );
-      expect(metadata.properties['rich_property']['name']).toEqual(
-        tokenMetadata.properties.rich_property['name']
-      );
-      expect(metadata.properties['rich_property']['value']).toEqual(
-        tokenMetadata.properties.rich_property['value']
-      );
-      expect(metadata.properties['rich_property']['display_value']).toEqual(
-        tokenMetadata.properties.rich_property['display_value']
-      );
-      expect(metadata.properties['rich_property']['class']).toEqual(
-        tokenMetadata.properties.rich_property['class']
-      );
-      expect(metadata.properties['rich_property']['css']['color']).toEqual(
-        tokenMetadata.properties.rich_property['css']['color']
-      );
-      expect(
-        metadata.properties['rich_property']['css']['font-weight']
-      ).toEqual(tokenMetadata.properties.rich_property['css']['font-weight']);
-      expect(
-        metadata.properties['rich_property']['css']['text-decoration']
-      ).toEqual(
+      expect(metadata.properties['rich_property']['css']['text-decoration']).toEqual(
         tokenMetadata.properties.rich_property['css']['text-decoration']
       );
       expect(metadata.yours.modules).toBeDefined();
       expect(metadata.yours.project).toEqual(tokenMetadata.yours.project);
       expect(metadata.yours.collection).toEqual(tokenMetadata.yours.collection);
-      expect(metadata.description).toBe(tokenMetadata.description);
-      expect(metadata.image).toBe(tokenMetadata.image);
-      expect(metadata.animation_url).toBe(tokenMetadata.animation_url);
     },
     TIMEOUT_TEST
   );

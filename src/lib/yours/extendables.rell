@@ -34,7 +34,7 @@ function after_apply_transfer(token, modules: set<name>, properties: map<text, g
  * @param modules to populate the metadata with
  */
 @extendable
-function populate_metadata(token, modules: set<name>): map<text, gtv>?;
+function populate_metadata(token, modules: set<name>): map<text, gtv>;
 
 /**
  * Allows a caller to hook into the burn process and apply custom logic that has to be executed before.

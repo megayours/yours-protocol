@@ -23,9 +23,6 @@ struct token_metadata_outgoing {
   name;
   properties: map<text, gtv>;
   yours: yours_metadata;
-  description: text?;
-  image: text?;
-  animation_url: text?;
 }
 
 /**
@@ -56,7 +53,7 @@ function get_metadata(token): token_metadata_outgoing {
   val base_metadata = imported_attributes @? {
     token
   } ( _json_to_gtv_map ($.json) ) ?: map<text, gtv>();
-  val metadata = populate_metadata(token, set(token_module @* { token } ( .module_name ))) ?: map<text, gtv>();
+  val metadata = populate_metadata(token, set(token_module @* { token } ( .module_name )));
 
   base_metadata.put_all(metadata);
 
@@ -72,9 +69,6 @@ function get_metadata(token): token_metadata_outgoing {
         owner_id = project.owner_id
       ),
       modules = token_module @* { token } ( .module_name ),
-    ),
-    description = token_description @? { token } ( .text ),
-    image = token_image @? { token } ( .url ),
-    animation_url = token_animation @? { token } ( .url )
+    )
   );
 }

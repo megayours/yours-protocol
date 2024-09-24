@@ -1,7 +1,7 @@
 @extend(yours.populate_metadata)
-function populate_metadata(yours.token, modules: set<name>): map<text, gtv>? {
-  if (not modules.contains("pudgy")) return null;
+function populate_metadata(yours.token, modules: set<name>): map<text, gtv> {
   val metadata = map<text, gtv>();
+  if (not modules.contains("pudgy")) return metadata;
 
   if (token.collection.name == PUDGY_PENGUIN_COLLECTION) {
     val avatar = avatar @ { token };
