@@ -37,12 +37,34 @@
 function before_burn(token, ft4.accounts.account, amount: integer) {}
 
 /**
+ * Allows a caller to hook into the burn process and apply custom logic that has to be executed after.
+ *
+ * @param token to be burned
+ */
+@extendable
+function after_burn(token, ft4.accounts.account, amount: integer) {}
+
+/**
  * Allows a caller to hook into the transfer process and apply custom logic that has to be executed before.
  *
  * @param token to be transferred
+ * @param from the account that is transferring the token
+ * @param to the account that is receiving the token
+ * @param amount of the token that is being transferred
  */
 @extendable
-function before_transfer(token, ft4.accounts.account, amount: integer) {}
+function before_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: integer) {}
+
+/**
+ * Allows a caller to hook into the transfer process and apply custom logic that has to be executed after.
+ *
+ * @param token to be transferred
+ * @param from the account that is transferring the token
+ * @param to the account that is receiving the token
+ * @param amount of the token that is being transferred
+ */
+@extendable
+function after_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: integer) {}
 
 /**
  * Allows a caller to hook into the mint process and apply custom logic that has to be executed before.
@@ -51,3 +73,11 @@ function before_transfer(token, ft4.accounts.account, amount: integer) {}
  */
 @extendable
 function before_mint(token, ft4.accounts.account, amount: integer) {}
+
+/**
+ * Allows a caller to hook into the mint process and apply custom logic that has to be executed after.
+ *
+ * @param token to be minted
+ */
+@extendable
+function after_mint(token, ft4.accounts.account, amount: integer) {}
