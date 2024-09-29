@@ -3,7 +3,7 @@ import { createAccount } from './utils/ft4';
 import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
 import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
 import { op } from '@chromia/ft4';
-import { createProjectMetadata, createTokenMetadata } from './utils/metadata';
+import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
 import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
@@ -28,12 +28,19 @@ describe('Non-Fungible Token', () => {
       const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
+      const erc1155Properties = createErc1155Properties();
 
       const tokenId = 0;
 
       await session
         .transactionBuilder()
-        .add(op('importer.nft', serializeTokenMetadata(tokenMetadata), tokenId))
+        .add(
+          op('importer.nft', serializeTokenMetadata(tokenMetadata), tokenId, [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .buildAndSend();
 
       const balance = await session.query<number>('yours.balance', {
@@ -56,14 +63,20 @@ describe('Non-Fungible Token', () => {
       const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
-
+      const erc1155Properties = createErc1155Properties();
       const tokenId = 1;
 
       const serializedMetadata = serializeTokenMetadata(tokenMetadata);
 
       await session
         .transactionBuilder()
-        .add(op('importer.nft', serializedMetadata, tokenId))
+        .add(
+          op('importer.nft', serializedMetadata, tokenId, [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .buildAndSend();
 
       const metadata = await session.query<TokenMetadata>('yours.metadata', {

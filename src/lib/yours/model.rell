@@ -1,3 +1,8 @@
+enum token_type {
+  yours,
+  external,
+  soulbound,
+}
 
 /**
  * A project that can contain multiple collections.
@@ -20,6 +25,7 @@ entity collection {
  */
 entity token {
   key collection, id: integer;
+  type: token_type;
   mutable name;
 }
 

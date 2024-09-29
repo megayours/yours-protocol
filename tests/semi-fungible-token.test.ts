@@ -3,7 +3,7 @@ import { createAccount } from './utils/ft4';
 import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
 import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
 import { op } from '@chromia/ft4';
-import { createProjectMetadata, createTokenMetadata } from './utils/metadata';
+import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
 import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
@@ -29,10 +29,16 @@ describe('Semi-Fungible Token', () => {
       const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
-
+      const erc1155Properties = createErc1155Properties();
       await session
         .transactionBuilder()
-        .add(op('importer.sft', serializeTokenMetadata(tokenMetadata)))
+        .add(
+          op('importer.sft', serializeTokenMetadata(tokenMetadata), [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .buildAndSend();
     },
     TIMEOUT_TEST
@@ -47,11 +53,17 @@ describe('Semi-Fungible Token', () => {
       const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
-
+      const erc1155Properties = createErc1155Properties();
       const mintAmount = 2;
       await session
         .transactionBuilder()
-        .add(op('importer.sft', serializeTokenMetadata(tokenMetadata)))
+        .add(
+          op('importer.sft', serializeTokenMetadata(tokenMetadata), [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .add(op('importer.mint', project.name, collection, 0, mintAmount))
         .buildAndSend();
 
@@ -75,10 +87,16 @@ describe('Semi-Fungible Token', () => {
       const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
-
+      const erc1155Properties = createErc1155Properties();
       await session
         .transactionBuilder()
-        .add(op('importer.sft', serializeTokenMetadata(tokenMetadata)))
+        .add(
+          op('importer.sft', serializeTokenMetadata(tokenMetadata), [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .add(op('importer.mint', project.name, collection, 0, 1))
         .buildAndSend();
 

@@ -1,0 +1,5 @@
+struct erc1155_properties {
+  description: text?;
+  image: text?;
+  animation_url: text?;
+}

@@ -1,7 +1,7 @@
 import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
 import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
 import { createAccount } from './utils/ft4';
-import { createProjectMetadata, createTokenMetadata } from './utils/metadata';
+import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { randomCollectionName } from './utils/random';
 import { encryption } from 'postchain-client';
 import { op, Session } from '@chromia/ft4';
@@ -193,15 +193,28 @@ describe('Crosschain', () => {
   );
 
   const testCrossChainTransfer = async (params: CrosschainTestParams) => {
+    const erc1155Properties = createErc1155Properties();
     if (params.tokenType === 'nft') {
       await params.dapp1Session
         .transactionBuilder()
-        .add(op('importer.nft', serializeTokenMetadata(params.tokenMetadata), params.tokenId))
+        .add(
+          op('importer.nft', serializeTokenMetadata(params.tokenMetadata), params.tokenId, [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .buildAndSend();
     } else {
       await params.dapp1Session
         .transactionBuilder()
-        .add(op('importer.sft', serializeTokenMetadata(params.tokenMetadata)))
+        .add(
+          op('importer.sft', serializeTokenMetadata(params.tokenMetadata), [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .add(op('importer.mint', params.project.name, params.collection, params.tokenId, params.mintAmount))
         .buildAndSend();
     }

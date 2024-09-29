@@ -9,9 +9,6 @@ struct token_metadata_incoming {
   name;
   properties: json;
   yours: yours_metadata;
-  description: text?;
-  image: text?;
-  animation_url: text?;
 }
 
 /**

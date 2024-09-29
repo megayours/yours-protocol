@@ -3,7 +3,7 @@ import { createAccount } from './utils/ft4';
 import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
 import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
 import { op } from '@chromia/ft4';
-import { createProjectMetadata, createTokenMetadata } from './utils/metadata';
+import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
 import { serializeTokenMetadata } from '@megayours/sdk';
@@ -37,6 +37,7 @@ describe('ERC1155', () => {
       const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
+      const erc1155Properties = createErc1155Properties();
 
       const tokenId = 1;
 
@@ -44,7 +45,13 @@ describe('ERC1155', () => {
 
       await session
         .transactionBuilder()
-        .add(op('importer.nft', serializedMetadata, tokenId))
+        .add(
+          op('importer.nft', serializedMetadata, tokenId, [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .buildAndSend();
 
       const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {
@@ -69,9 +76,9 @@ describe('ERC1155', () => {
       expect(metadata.properties['animation_url']).toBe(undefined);
       expect(metadata.properties['description']).toBe(undefined);
 
-      expect(metadata.description).toBe(tokenMetadata.description);
-      expect(metadata.image).toBe(tokenMetadata.image);
-      expect(metadata.animation_url).toBe(tokenMetadata.animation_url);
+      expect(metadata.description).toBe(erc1155Properties.description);
+      expect(metadata.image).toBe(erc1155Properties.image);
+      expect(metadata.animation_url).toBe(erc1155Properties.animation_url);
     },
     TIMEOUT_TEST
   );
@@ -85,10 +92,16 @@ describe('ERC1155', () => {
       const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
-
+      const erc1155Properties = createErc1155Properties();
       await session
         .transactionBuilder()
-        .add(op('importer.sft', serializeTokenMetadata(tokenMetadata)))
+        .add(
+          op('importer.sft', serializeTokenMetadata(tokenMetadata), [
+            erc1155Properties.description,
+            erc1155Properties.image,
+            erc1155Properties.animation_url,
+          ])
+        )
         .add(op('importer.mint', project.name, collection, 0, 1))
         .buildAndSend();
 
@@ -115,9 +128,9 @@ describe('ERC1155', () => {
       expect(metadata.properties['animation_url']).toBe(undefined);
       expect(metadata.properties['description']).toBe(undefined);
 
-      expect(metadata.description).toBe(tokenMetadata.description);
-      expect(metadata.image).toBe(tokenMetadata.image);
-      expect(metadata.animation_url).toBe(tokenMetadata.animation_url);
+      expect(metadata.description).toBe(erc1155Properties.description);
+      expect(metadata.image).toBe(erc1155Properties.image);
+      expect(metadata.animation_url).toBe(erc1155Properties.animation_url);
     },
     TIMEOUT_TEST
   );

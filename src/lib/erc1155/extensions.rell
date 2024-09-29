@@ -1,0 +1,36 @@
+@extend(yours.after_apply_transfer)
+function after_apply_transfer(yours.token, modules: set<name>, properties: map<text, gtv>) {
+  if (not modules.contains(MODULE_NAME)) return;
+
+  if (properties.contains("description")) {
+    set_description(token, text.from_gtv(properties["description"]));
+  }
+  if (properties.contains("image")) {
+    set_image(token, text.from_gtv(properties["image"]));
+  }
+  if (properties.contains("animation_url")) {
+    set_animation(token, text.from_gtv(properties["animation_url"]));
+  }
+}
+
+@extend(yours.populate_metadata)
+function populate_metadata(yours.token, modules: set<name>): map<text, gtv> {
+  val metadata = map<text, gtv>();
+  if (not modules.contains(MODULE_NAME)) return metadata;
+
+  val description = token_description @? { token } ( $.description );
+  val image = token_image @? { token } ( $.image );
+  val animation = token_animation @? { token } ( $.animation );
+
+  if (description != null) {
+    metadata.put("description", description.to_gtv());
+  }
+  if (image != null) {
+    metadata.put("image", image.to_gtv());
+  }
+  if (animation != null) {
+    metadata.put("animation_url", animation.to_gtv());
+  }
+
+  return metadata;
+}

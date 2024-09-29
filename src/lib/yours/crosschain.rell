@@ -99,6 +99,7 @@ operation apply_transfer(
       token_info(
         project = transferred_metadata.yours.project,
         collection = transferred_metadata.yours.collection,
+        type = token_type.yours,
         name = transferred_metadata.name,
         modules = transferred_metadata.yours.modules
       ),
