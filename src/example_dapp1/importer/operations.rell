@@ -12,9 +12,7 @@ function () = auth.add_auth_handler(
 operation nft(metadata: yours.token_metadata_incoming, token_id: integer, properties: erc1155_properties) {
   val account = auth.authenticate();
 
-  require(metadata.yours.project.owner_id == account.id);
   require(metadata.yours.project.blockchain_rid == chain_context.blockchain_rid);
-  yours.assert_project_owner(metadata.yours.project.name, metadata.yours.project.owner_id);
 
   val token = yours.create_token_with_id(
     yours.token_info(
@@ -49,9 +47,7 @@ operation nft(metadata: yours.token_metadata_incoming, token_id: integer, proper
 operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_properties) {
   val account = auth.authenticate();
 
-  require(metadata.yours.project.owner_id == account.id);
   require(metadata.yours.project.blockchain_rid == chain_context.blockchain_rid);
-  yours.assert_project_owner(metadata.yours.project.name, metadata.yours.project.owner_id);
 
   val token = yours.create_token(
     yours.token_info(
@@ -76,7 +72,6 @@ operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_prope
 
 operation mint(project: name, collection: name, token_id: integer, amount: integer) {
   val account = auth.authenticate();
-  yours.assert_project_owner(project, account.id);
 
   val token = require(yours.get_token(project, collection, token_id));
   yours.mint(token, yours.balance_info(account, amount = amount));

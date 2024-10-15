@@ -1,9 +1,8 @@
-import { ERC1155RootMetadata, ProjectMetadata, TokenMetadata } from '@megayours/sdk';
+import { ERC1155BaseMetadata, ProjectMetadata, TokenMetadata } from '@megayours/sdk';
 
-export const createProjectMetadata = (owner_id: Buffer, blockchain_rid: string): ProjectMetadata => ({
+export const createProjectMetadata = (blockchain_rid: string): ProjectMetadata => ({
   name: 'Test Project:' + Date.now(),
   blockchain_rid: Buffer.from(blockchain_rid, 'hex'),
-  owner_id,
 });
 
 export const createTokenMetadata = (project: ProjectMetadata, collection: string, name: string = 'A Test Token'): TokenMetadata => ({
@@ -34,8 +33,7 @@ export const createTokenMetadata = (project: ProjectMetadata, collection: string
   },
 });
 
-export const createErc1155Properties = (name: string = 'A Test Token'): ERC1155RootMetadata => ({
-  name,
+export const createErc1155Properties = (): ERC1155BaseMetadata => ({
   description: 'A Test Description',
   image: 'A Test Image',
   animation_url: 'A Test Animation',

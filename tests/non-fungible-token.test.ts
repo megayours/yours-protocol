@@ -25,7 +25,7 @@ describe('Non-Fungible Token', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
       const erc1155Properties = createErc1155Properties();
@@ -60,7 +60,7 @@ describe('Non-Fungible Token', () => {
       const keyPair = encryption.makeKeyPair();
       const session = await createAccount(environment.dapp1Client, keyPair);
 
-      const project = createProjectMetadata(session.account.id, environment.dapp1Client.config.blockchainRid);
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
       const erc1155Properties = createErc1155Properties();

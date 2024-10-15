@@ -23,12 +23,11 @@ operation init_transfer(
   val account = ft4.auth.authenticate();
 
   val project_info = metadata.yours.project;
-  require(project @? { .name == project_info.name, .owner_id == project_info.owner_id } != null, "Invalid project");
+  require(project @? { .name == project_info.name, .blockchain_rid == project_info.blockchain_rid } != null, "Invalid project");
 
   val collection = metadata.yours.collection;
 
   val token = require(get_token(project_info.name, collection, token_id), "Token Not Found");
-  require(project @? { .name == project_info.name, .owner_id == project_info.owner_id } != null, "Invalid project");
   require(get_balance(token, account) >= amount, "Insufficient balance");
   val existing_metadata = get_metadata(token);
 

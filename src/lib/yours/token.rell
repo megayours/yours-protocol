@@ -16,7 +16,6 @@ struct token_info {
 struct project_info {
   name: name;
   blockchain_rid: byte_array;
-  owner_id: byte_array;
 }
 
 /**
@@ -103,6 +102,7 @@ function has_module(token, name): boolean {
  * @param info the information for the mint
  */
 function mint(token, info: balance_info) {
+  // TODO: Make this work with crosschain mints require(token.collection.project.blockchain_rid == chain_context.blockchain_rid, "This chain does not have permission to mint this token");
   before_mint(token, info.account, info.amount);
   _mint_balance(token, info.account, info.amount);
   after_mint(token, info.account, info.amount);

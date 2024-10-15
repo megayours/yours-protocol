@@ -9,7 +9,6 @@ enum token_type {
  */
 entity project {
   key name, blockchain_rid: byte_array;
-  index mutable owner_id: byte_array;
 }
 
 /**

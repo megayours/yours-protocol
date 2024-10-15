@@ -27,7 +27,7 @@ describe('Crosschain', () => {
       const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
       const collection = randomCollectionName();
-      const project = createProjectMetadata(dapp1Session.account.id, environment.dapp1Client.config.blockchainRid);
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
 
       const tokenId = 0;
@@ -66,7 +66,7 @@ describe('Crosschain', () => {
       const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
       const collection = randomCollectionName();
-      const project = createProjectMetadata(dapp1Session.account.id, environment.dapp1Client.config.blockchainRid);
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
 
       const tokenId = 0;
@@ -121,7 +121,7 @@ describe('Crosschain', () => {
       const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
       const collection = randomCollectionName();
-      const project = createProjectMetadata(dapp1Session.account.id, environment.dapp1Client.config.blockchainRid);
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
       const tokenId = 0;
       const params: CrosschainTestParams = {
@@ -161,7 +161,7 @@ describe('Crosschain', () => {
       const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
 
       const collection = randomCollectionName();
-      const project = createProjectMetadata(dapp1Session.account.id, environment.dapp1Client.config.blockchainRid);
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
       const tokenId = 0;
       const params: CrosschainTestParams = {

@@ -4,8 +4,7 @@ function ensure_project(project_info) {
     .blockchain_rid == project_info.blockchain_rid
   } ?: create project (
     project_info.name,
-    blockchain_rid = project_info.blockchain_rid,
-    owner_id = project_info.owner_id
+    blockchain_rid = project_info.blockchain_rid
   );
 }
 
@@ -17,7 +16,3 @@ function _json_to_gtv_map(json): map<text, gtv> {
   return map<text, gtv>.from_gtv(gtv.from_json(json));
 }
 
-function assert_project_owner(name, owner_id: byte_array) {
-  val existing_project_owner = project @? { name } ( .owner_id );
-  require(existing_project_owner == null or existing_project_owner == owner_id);
-}
