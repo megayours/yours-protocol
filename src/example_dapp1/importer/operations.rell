@@ -9,7 +9,7 @@ function () = auth.add_auth_handler(
  * Normally you would only provide the attributes and let the dapp code define project, collection, modules, etc for extra validation.
  * We only take this shortcut here to make the test suite a bit easier.
  */
-operation nft(metadata: yours.token_metadata_incoming, token_id: integer, properties: erc1155_properties) {
+operation nft(metadata: yours.token_metadata_incoming, token_id: integer, properties: erc1155_properties, token_type: name = "yours") {
   val account = auth.authenticate();
 
   require(metadata.yours.project.blockchain_rid == chain_context.blockchain_rid);
@@ -18,7 +18,7 @@ operation nft(metadata: yours.token_metadata_incoming, token_id: integer, proper
     yours.token_info(
       project = metadata.yours.project,
       collection = metadata.yours.collection,
-      type = yours.token_type.yours,
+      type = yours.token_type.value(token_type),
       name = metadata.name,
       modules = []
     ),
@@ -44,8 +44,8 @@ operation nft(metadata: yours.token_metadata_incoming, token_id: integer, proper
  * Normally you would only provide the attributes and let the dapp code define project, collection, modules, etc for extra validation.
  * We only take this shortcut here to make the test suite a bit easier.
  */
-operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_properties) {
-  val account = auth.authenticate();
+operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_properties, token_type: name = "yours") {
+  auth.authenticate();
 
   require(metadata.yours.project.blockchain_rid == chain_context.blockchain_rid);
 
@@ -53,7 +53,7 @@ operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_prope
     yours.token_info(
       project = metadata.yours.project,
       collection = metadata.yours.collection,
-      type = yours.token_type.yours,
+      type = yours.token_type.value(token_type),
       name = metadata.name,
       modules = []
     )

@@ -160,7 +160,7 @@ operation complete_transfer(
 }
 
 function _apply_transfer(account_id: byte_array, token, amount: integer, token_metadata: token_metadata_incoming) {
-  mint(token, balance_info(ft4.accounts.account @ { account_id }, amount));
+  _mint(token, balance_info(ft4.accounts.account @ { account_id }, amount));
   _apply_common_metadata(token, token_metadata);
 
   val imported_attributes = imported_attributes @? { token };

@@ -35,11 +35,13 @@ describe('Non-Fungible Token', () => {
       await session
         .transactionBuilder()
         .add(
-          op('importer.nft', serializeTokenMetadata(tokenMetadata), tokenId, [
-            erc1155Properties.description,
-            erc1155Properties.image,
-            erc1155Properties.animation_url,
-          ])
+          op(
+            'importer.nft',
+            serializeTokenMetadata(tokenMetadata),
+            tokenId,
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
         )
         .buildAndSend();
 
@@ -71,11 +73,13 @@ describe('Non-Fungible Token', () => {
       await session
         .transactionBuilder()
         .add(
-          op('importer.nft', serializedMetadata, tokenId, [
-            erc1155Properties.description,
-            erc1155Properties.image,
-            erc1155Properties.animation_url,
-          ])
+          op(
+            'importer.nft',
+            serializedMetadata,
+            tokenId,
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
         )
         .buildAndSend();
 
@@ -99,6 +103,44 @@ describe('Non-Fungible Token', () => {
       expect(metadata.yours.modules).toBeDefined();
       expect(metadata.yours.project).toEqual(tokenMetadata.yours.project);
       expect(metadata.yours.collection).toEqual(tokenMetadata.yours.collection);
+    },
+    TIMEOUT_TEST
+  );
+
+  it(
+    'Unable to transfer soulbound NFT',
+    async () => {
+      const keyPair = encryption.makeKeyPair();
+      const session = await createAccount(environment.dapp1Client, keyPair);
+
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
+      const collection = randomCollectionName();
+      const tokenMetadata = createTokenMetadata(project, collection);
+      const erc1155Properties = createErc1155Properties();
+
+      const tokenId = 1;
+
+      // First, create the soulbound SFT and mint it
+      await session
+        .transactionBuilder()
+        .add(
+          op(
+            'importer.nft',
+            serializeTokenMetadata(tokenMetadata),
+            tokenId,
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'soulbound'
+          )
+        )
+        .buildAndSend();
+
+      // Now, try to transfer the soulbound SFT and expect it to fail
+      await expect(
+        session
+          .transactionBuilder()
+          .add(op('mkpl.transfer', project.name, collection, tokenId, 1, Buffer.from('DEADBEEF', 'hex')))
+          .buildAndSend()
+      ).rejects.toThrow('Only tokens of type yours can be transferred');
     },
     TIMEOUT_TEST
   );

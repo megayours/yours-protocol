@@ -198,22 +198,25 @@ describe('Crosschain', () => {
       await params.dapp1Session
         .transactionBuilder()
         .add(
-          op('importer.nft', serializeTokenMetadata(params.tokenMetadata), params.tokenId, [
-            erc1155Properties.description,
-            erc1155Properties.image,
-            erc1155Properties.animation_url,
-          ])
+          op(
+            'importer.nft',
+            serializeTokenMetadata(params.tokenMetadata),
+            params.tokenId,
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
         )
         .buildAndSend();
     } else {
       await params.dapp1Session
         .transactionBuilder()
         .add(
-          op('importer.sft', serializeTokenMetadata(params.tokenMetadata), [
-            erc1155Properties.description,
-            erc1155Properties.image,
-            erc1155Properties.animation_url,
-          ])
+          op(
+            'importer.sft',
+            serializeTokenMetadata(params.tokenMetadata),
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
         )
         .add(op('importer.mint', params.project.name, params.collection, params.tokenId, params.mintAmount))
         .buildAndSend();

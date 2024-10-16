@@ -46,11 +46,13 @@ describe('ERC1155', () => {
       await session
         .transactionBuilder()
         .add(
-          op('importer.nft', serializedMetadata, tokenId, [
-            erc1155Properties.description,
-            erc1155Properties.image,
-            erc1155Properties.animation_url,
-          ])
+          op(
+            'importer.nft',
+            serializedMetadata,
+            tokenId,
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
         )
         .buildAndSend();
 
@@ -96,11 +98,12 @@ describe('ERC1155', () => {
       await session
         .transactionBuilder()
         .add(
-          op('importer.sft', serializeTokenMetadata(tokenMetadata), [
-            erc1155Properties.description,
-            erc1155Properties.image,
-            erc1155Properties.animation_url,
-          ])
+          op(
+            'importer.sft',
+            serializeTokenMetadata(tokenMetadata),
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
         )
         .add(op('importer.mint', project.name, collection, 0, 1))
         .buildAndSend();
