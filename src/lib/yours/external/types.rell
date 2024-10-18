@@ -1,0 +1,20 @@
+struct mint_message {
+  project: name;
+  collection: name;
+  token_id: integer;
+  token_name: name;
+  metadata: json;
+  to: byte_array;
+  amount: integer;
+  chain: name;
+  contract: byte_array;
+}
+
+struct transfer_message {
+  chain: name;
+  contract: byte_array;
+  token_id: integer;
+  from: byte_array;
+  to: byte_array;
+  amount: integer;
+}

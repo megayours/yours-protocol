@@ -2,8 +2,8 @@
 module;
 
 namespace ft4 {
-  import lib.ft4.accounts;
-  import lib.ft4.auth;
+  import ^.ft4.accounts;
+  import ^.ft4.auth;
 }
 
-import lib.iccf;
+import ^.iccf;

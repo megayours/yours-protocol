@@ -21,7 +21,7 @@ query balance(account_id: byte_array, project: name, collection: name, token_id:
 }
 
 query projects(): list<name> {
-  return project @* {} ( .name );
+  return project @* { } ( .name );
 }
 
 query collections(project: name): list<name> {

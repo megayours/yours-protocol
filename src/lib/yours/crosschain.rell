@@ -163,15 +163,9 @@ function _apply_transfer(account_id: byte_array, token, amount: integer, token_m
   _mint(token, balance_info(ft4.accounts.account @ { account_id }, amount));
   _apply_common_metadata(token, token_metadata);
 
-  val imported_attributes = imported_attributes @? { token };
-  if (imported_attributes == null) {
-    create imported_attributes ( token, token_metadata.properties );
-  } else {
-    imported_attributes.json = token_metadata.properties;
-  }
-
-  val properties = _json_to_gtv_map(token_metadata.properties);
-  after_apply_transfer(token, set(token_metadata.yours.modules), properties);
+  val attributes = _json_to_gtv_map(token_metadata.properties);
+  _import_attributes(token, attributes);
+  after_apply_transfer(token, set(token_metadata.yours.modules), attributes);
 }
 
 function _apply_common_metadata(token, metadata: token_metadata_incoming) {
