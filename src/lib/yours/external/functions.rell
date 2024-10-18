@@ -1,0 +1,81 @@
+@extend(receive_icmf_message)
+function _handle_message(sender: byte_array, topic: text, body: gtv) {
+  if (topic.starts_with(EVENT_TRANSFER)) {
+
+    val msg = transfer_message.from_gtv(body);
+    _validate_event_topic(topic, EVENT_TRANSFER, msg.chain, msg.contract);
+    _handle_transfer(sender, msg);
+  } else if (topic.starts_with(EVENT_MINT)) {
+    val msg = mint_message.from_gtv(body);
+    _validate_event_topic(topic, EVENT_MINT, msg.chain, msg.contract);
+    _handle_mint(sender, msg);
+  }
+}
+
+function _validate_event_topic(topic: text, type: text, chain: name, contract: byte_array) {
+  val expected_topic = "%s_%s_%s".format(type, chain.lower_case(), contract.to_hex().lower_case());
+  require(topic == expected_topic, "Invalid event topic");
+}
+
+function _handle_transfer(sender: byte_array, msg: transfer_message) {
+  val from = _ensure_evm_account(msg.from);
+  val to = _ensure_evm_account(msg.to);
+  val token = require(
+    external_token @? {
+      .chain == msg.chain,
+      .contract == msg.contract,
+      .token.id == msg.token_id
+    } ( .token ),
+    "Token not found"
+  );
+
+  require(token.collection.project.blockchain_rid == sender, "Sending chain isn't the owner of the token");
+  yours._transfer(token, yours.transfer_info(from, to, msg.amount));
+}
+
+function _handle_mint(sender: byte_array, msg: mint_message) {
+  if (external_token @? { .chain == msg.chain, .contract == msg.contract, .token.id == msg.token_id } != null) return;
+
+  val spec = yours.token_info(
+    project = yours.project_info(msg.project, sender),
+    collection = msg.collection,
+    type = yours.token_type.external,
+    name = msg.token_name,
+    modules = [MODULE_NAME]
+  );
+
+  val token = yours.create_token_with_id(spec, msg.token_id);
+
+  val attributes = yours._json_to_gtv_map(msg.metadata);
+  yours._import_attributes(token, attributes);
+  _attach(token, msg.chain, msg.contract);
+  yours._mint(token, yours.balance_info(_ensure_evm_account(msg.to), msg.amount));
+}
+
+function _attach(token: yours.token, chain: name, contract: byte_array) {
+  yours.attach_module(token, MODULE_NAME);
+  create external_token ( token, chain, contract );
+}
+
+function _ensure_evm_account(evm_address: byte_array) {
+  var account = ft4.accounts.account @? { evm_address };
+  if (account != null) return account;
+
+  account = create ft4.accounts.account ( evm_address, ft4.accounts.ACCOUNT_TYPE_USER );
+
+  // Prepare auth descriptor
+  val args = ft4.accounts.single_sig_args(flags = set(ft4.accounts.get_auth_flags_config().mandatory), signer = evm_address);
+  val auth_descriptor = create ft4.accounts.account_auth_descriptor (
+    id = evm_address,
+    account,
+    auth_type = ft4.accounts.auth_type.S,
+    args = args.to_gtv().to_bytes(),
+    rules = ft4.accounts.GTV_NULL.to_bytes(),
+    ctr = 0,
+    created = op_context.last_block_time
+  );
+
+  create ft4.accounts.main_auth_descriptor ( account, auth_descriptor );
+
+  return account;
+}

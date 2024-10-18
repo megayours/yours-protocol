@@ -1,0 +1,9 @@
+@mount("yours.external")
+module;
+
+import ^^.yours;
+import ^^.icmf.receiver. { receive_icmf_message };
+
+namespace ft4 {
+  import ^^.ft4.accounts;
+}

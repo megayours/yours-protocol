@@ -1,0 +1,38 @@
+query metadata(chain: name, contract: byte_array, token_id: integer) {
+  val token = external_token @? {
+    .chain == chain,
+    .contract == contract,
+    .token.id == token_id
+  } ( .token );
+
+  if (token == null) return null;
+
+  return yours.get_metadata(token);
+}
+
+query owner_account_id(chain: name, contract: byte_array, token_id: integer) {
+  val token = external_token @? {
+    .chain == chain,
+    .contract == contract,
+    .token.id == token_id
+  } ( .token );
+
+  if (token == null) return null;
+
+  val owners = yours.token_balance @* { token } ( .account );
+  require(owners.size() == 1, "Not a single owner, use %s instead".format(rell.meta(owners_account_ids).module_name));
+
+  return owners[0].id;
+}
+
+query owners_account_ids(chain: name, contract: byte_array, token_id: integer) {
+  val token = external_token @? {
+    .chain == chain,
+    .contract == contract,
+    .token.id == token_id
+  } ( .token );
+
+  if (token == null) return null;
+
+  return yours.token_balance @* { token } ( .account.id );
+}
