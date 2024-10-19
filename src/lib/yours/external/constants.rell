@@ -1,0 +1,2 @@
+val MODULE_NAME = "yours_external";
+val EVENT_PREFIX = "L_yours_external";

@@ -3,8 +3,13 @@ module;
 import .avatars;
 import shared_module;
 
-import lib.yours;
+namespace yours {
+  import lib.yours.*;
+  import lib.yours.external;
+}
+
 import lib.iccf;
+import lib.icmf.receiver;
 import lib.ft4.accounts.strategies.open;
 
 operation iccf_proof(

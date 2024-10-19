@@ -1,0 +1,6 @@
+entity external_token {
+  key yours.token;
+  chain: name;
+  contract: byte_array;
+  index chain, contract;
+}
