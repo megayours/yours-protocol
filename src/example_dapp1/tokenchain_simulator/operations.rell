@@ -22,7 +22,7 @@ operation emit_mint(
       chain,
       contract
     );
-  val topic = _format_topic(yours.external.EVENT_MINT, chain, contract);
+  val topic = _format_topic(chain, contract);
   log("emitting mint message on topic %s:".format(topic), msg);
   send_message(topic, msg.to_gtv());
 }
@@ -33,15 +33,15 @@ operation emit_transfer(chain: name, contract: byte_array, token_id: integer, fr
   val msg = yours
     .external
     .transfer_message(chain, contract, token_id, from, to, amount);
-  val topic = _format_topic(yours.external.EVENT_TRANSFER, chain, contract);
+  val topic = _format_topic(chain, contract);
   log("emitting transfer message on topic %s:".format(topic), msg);
   send_message(topic, msg.to_gtv());
 }
 
-function _format_topic(type: name, chain: name, contract: byte_array) {
+function _format_topic(chain: name, contract: byte_array) {
   return "%s_%s_%s"
     .format(
-      type,
+      yours.external.EVENT_PREFIX,
       chain.lower_case(),
       contract.to_hex().lower_case()
     );

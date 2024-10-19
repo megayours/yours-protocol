@@ -1,19 +1,22 @@
 @extend(receive_icmf_message)
 function _handle_message(sender: byte_array, topic: text, body: gtv) {
-  if (topic.starts_with(EVENT_TRANSFER)) {
+  val transfer_msg = try_call(transfer_message.from_gtv(body, *));
+  if (transfer_msg != null) {
+    _validate_event_topic(topic, transfer_msg.chain, transfer_msg.contract);
+    _handle_transfer(sender, transfer_msg);
+    return;
+  }
 
-    val msg = transfer_message.from_gtv(body);
-    _validate_event_topic(topic, EVENT_TRANSFER, msg.chain, msg.contract);
-    _handle_transfer(sender, msg);
-  } else if (topic.starts_with(EVENT_MINT)) {
-    val msg = mint_message.from_gtv(body);
-    _validate_event_topic(topic, EVENT_MINT, msg.chain, msg.contract);
-    _handle_mint(sender, msg);
+  val mint_msg = try_call(mint_message.from_gtv(body, *));
+  if (mint_msg != null) {
+    _validate_event_topic(topic, mint_msg.chain, mint_msg.contract);
+    _handle_mint(sender, mint_msg);
+    return;
   }
 }
 
-function _validate_event_topic(topic: text, type: text, chain: name, contract: byte_array) {
-  val expected_topic = "%s_%s_%s".format(type, chain.lower_case(), contract.to_hex().lower_case());
+function _validate_event_topic(topic: text, chain: name, contract: byte_array) {
+  val expected_topic = "%s_%s_%s".format(EVENT_PREFIX, chain.lower_case(), contract.to_hex().lower_case());
   require(topic == expected_topic, "Invalid event topic");
 }
 

@@ -32,9 +32,7 @@ blockchains:
         receiver:
           local:
             - bc-rid: null
-              topic: 'L_yours_external_mint_ethereum_524cab2ec69124574082676e6f654a18df49a048'
-            - bc-rid: null
-              topic: 'L_yours_external_transfer_ethereum_524cab2ec69124574082676e6f654a18df49a048'
+              topic: 'L_yours_external_ethereum_524cab2ec69124574082676e6f654a18df49a048'
     moduleArgs:
       lib.ft4.core.accounts:
         rate_limit:
