@@ -18,3 +18,10 @@ struct transfer_message {
   to: byte_array;
   amount: integer;
 }
+
+struct metadata_updated_message {
+  chain: name;
+  contract: byte_array;
+  token_id: integer;
+  metadata: json;
+}

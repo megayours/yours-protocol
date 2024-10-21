@@ -7,6 +7,13 @@ function _handle_message(sender: byte_array, topic: text, body: gtv) {
     return;
   }
 
+  val metadata_updated_msg = try_call(metadata_updated_message.from_gtv(body, *));
+  if (metadata_updated_msg != null) {
+    _validate_event_topic(topic, metadata_updated_msg.chain, metadata_updated_msg.contract);
+    _handle_metadata_updated(sender, metadata_updated_msg);
+    return;
+  }
+
   val mint_msg = try_call(mint_message.from_gtv(body, *));
   if (mint_msg != null) {
     _validate_event_topic(topic, mint_msg.chain, mint_msg.contract);
@@ -34,6 +41,15 @@ function _handle_transfer(sender: byte_array, msg: transfer_message) {
 
   require(token.collection.project.blockchain_rid == sender, "Sending chain isn't the owner of the token");
   yours._transfer(token, yours.transfer_info(from, to, msg.amount));
+}
+
+function _handle_metadata_updated(sender: byte_array, msg: metadata_updated_message) {
+  val token = require(external_token @? { .chain == msg.chain, .contract == msg.contract, .token.id == msg.token_id } ( .token ), "Token not found");
+
+  val attributes = yours._json_to_gtv_map(msg.metadata);
+  val name = try_call(text.from_gtv(attributes.get("name"), *));
+  if (name != null and token.name != name) token.name = name;
+  yours._import_attributes(token, attributes);
 }
 
 function _handle_mint(sender: byte_array, msg: mint_message) {
