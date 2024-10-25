@@ -1,0 +1,2 @@
+@extendable()
+function on_external_create(token: yours.token, attributes: map<text, gtv>) {}

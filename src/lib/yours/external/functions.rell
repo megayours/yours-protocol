@@ -64,10 +64,11 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
   );
 
   val token = yours.create_token_with_id(spec, msg.token_id);
-
   val attributes = yours._json_to_gtv_map(msg.metadata);
   yours._import_attributes(token, attributes);
   _attach(token, msg.chain, msg.contract);
+  on_external_create(token, attributes);
+
   yours._mint(token, yours.balance_info(_ensure_evm_account(msg.to), msg.amount));
 }
 
