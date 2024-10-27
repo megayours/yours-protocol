@@ -78,7 +78,9 @@ function _attach(token: yours.token, chain: name, contract: byte_array) {
 }
 
 function _ensure_evm_account(evm_address: byte_array) {
-  var account = ft4.accounts.account @? { evm_address };
+  log("Ensuring EVM account for address: %s".format(evm_address.to_hex()));
+  var account = ft4.accounts.auth_descriptor_signer @? { .id == evm_address } ( .account_auth_descriptor.account ) limit 1;
+  log("Found account: %s".format(account != null));
   if (account != null) return account;
 
   account = create ft4.accounts.account ( evm_address, ft4.accounts.ACCOUNT_TYPE_USER );
@@ -95,7 +97,21 @@ function _ensure_evm_account(evm_address: byte_array) {
     created = op_context.last_block_time
   );
 
+  // Create signers for the main auth descriptor
+  val main_ad_signers = _get_signers(auth_descriptor);
+  for (signer in main_ad_signers) {
+    create ft4.accounts.auth_descriptor_signer ( auth_descriptor, signer );
+  }
+
+  // Create main auth descriptor
   create ft4.accounts.main_auth_descriptor ( account, auth_descriptor );
 
   return account;
+}
+
+function _get_signers(auth_descriptor: ft4.accounts.account_auth_descriptor) {
+  return when (auth_descriptor.auth_type) {
+    S -> [ft4.accounts.single_sig_args.from_bytes(auth_descriptor.args).signer];
+    M -> ft4.accounts.multi_sig_args.from_bytes(auth_descriptor.args).signers;
+  };
 }
