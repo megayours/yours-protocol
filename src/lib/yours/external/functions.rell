@@ -106,6 +106,9 @@ function _ensure_evm_account(evm_address: byte_array) {
   // Create main auth descriptor
   create ft4.accounts.main_auth_descriptor ( account, auth_descriptor );
 
+  // Create misc account data
+  ft4.accounts.create_rate_limiter_state_for_account(account);
+
   return account;
 }
 
