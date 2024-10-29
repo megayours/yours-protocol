@@ -64,12 +64,64 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
   );
 
   val token = yours.create_token_with_id(spec, msg.token_id);
-  val attributes = yours._json_to_gtv_map(msg.metadata);
+
+  val metadata = yours._json_to_gtv_map(msg.metadata);
+  val attributes = _parse_attributes(metadata);
+  val other_attributes = _parse_other_attributes(metadata);
+  attributes.put_all(other_attributes);
   yours._import_attributes(token, attributes);
+
   _attach(token, msg.chain, msg.contract);
   on_external_create(token, attributes);
 
   yours._mint(token, yours.balance_info(_ensure_evm_account(msg.to), msg.amount));
+}
+
+function _parse_other_attributes(metadata: map<text, gtv>): map<text, gtv> {
+  metadata.remove_or_null("attributes");
+  metadata.remove_or_null("properties");
+  return metadata;
+}
+
+function _parse_attributes(metadata: map<text, gtv>): map<text, gtv> {
+  val attributes = metadata.get_or_null("attributes");
+  if (attributes != null) {
+    val attributes_list = try_call(list<gtv>.from_gtv(attributes, *));
+    if (attributes_list != null) {
+      val map = map<text, gtv>();
+      for (attribute in attributes_list) {
+        val attribute_map = map<text, gtv>.from_gtv(attribute);
+        val trait_type = attribute_map.get_or_null("trait_type");
+        if (trait_type != null) {
+          map.put("trait_type", trait_type);
+        }
+      }
+      return map;
+    }
+
+    val attributes_map = try_call(map<text, gtv>.from_gtv(attributes, *));
+    if (attributes_map != null) {
+      return attributes_map;
+    }
+  }
+
+  val properties = metadata.get_or_null("properties");
+  if (properties != null) {
+    val properties_list = try_call(list<gtv>.from_gtv(properties, *));
+    if (properties_list != null) {
+      val map = map<text, gtv>();
+      for (property in properties_list) {
+        val property_map = map<text, gtv>.from_gtv(property);
+        val trait_value = property_map.get_or_null("value");
+        if (trait_value != null) {
+          map.put("trait_type", trait_value);
+        }
+      }
+      return map;
+    }
+  }
+
+  return map<text, gtv>();
 }
 
 function _attach(token: yours.token, chain: name, contract: byte_array) {
