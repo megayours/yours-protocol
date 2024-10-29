@@ -92,8 +92,9 @@ function _parse_attributes(metadata: map<text, gtv>): map<text, gtv> {
       for (attribute in attributes_list) {
         val attribute_map = map<text, gtv>.from_gtv(attribute);
         val trait_type = attribute_map.get_or_null("trait_type");
-        if (trait_type != null) {
-          map.put("trait_type", trait_type);
+        val trait_value = attribute_map.get_or_null("value");
+        if (trait_type != null and trait_value != null) {
+          map.put(text.from_gtv(trait_type), trait_value);
         }
       }
       return map;
@@ -112,9 +113,10 @@ function _parse_attributes(metadata: map<text, gtv>): map<text, gtv> {
       val map = map<text, gtv>();
       for (property in properties_list) {
         val property_map = map<text, gtv>.from_gtv(property);
+        val trait_type = property_map.get_or_null("trait_type");
         val trait_value = property_map.get_or_null("value");
-        if (trait_value != null) {
-          map.put("trait_type", trait_value);
+        if (trait_type != null and trait_value != null) {
+          map.put(text.from_gtv(trait_type), trait_value);
         }
       }
       return map;
