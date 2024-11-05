@@ -1,0 +1,7 @@
+struct token_balance_dto {
+  project: name;
+  collection: name;
+  token_id: integer;
+  type: text;
+  amount: integer;
+}

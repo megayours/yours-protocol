@@ -1,3 +1,16 @@
+query tokens(account_id: byte_array): list<token_balance_dto> {
+  return token_balance @* {
+    .account.id == account_id
+  } (
+    token_balance_dto (
+      project = .token.collection.project.name,
+      collection = .token.collection.name,
+      token_id = .token.id,
+      type = .token.type.name,
+      amount = .amount
+    )
+  );
+}
 
 /**
  * Returns the metadata of all modules the token has been used within.
@@ -10,6 +23,15 @@ query metadata(project: name, collection: name, token_id: integer): token_metada
   return if (token != null) get_metadata(token) else null;
 }
 
+/**
+ * Returns the balance of the token for the given account.
+ *
+ * @param account_id of the account to get the balance for
+ * @param project of the token to get the balance for
+ * @param collection of the token to get the balance for
+ * @param token_id of the token to get the balance for
+ * @return The balance of the token for the given account
+ */
 query balance(account_id: byte_array, project: name, collection: name, token_id: integer): integer {
   val token = get_active_token(project, collection, token_id);
   if (token == null) return 0;
@@ -20,10 +42,21 @@ query balance(account_id: byte_array, project: name, collection: name, token_id:
   return get_balance(token, account);
 }
 
+/**
+ * Returns the list of all projects.
+ *
+ * @return The list of all projects
+ */
 query projects(): list<name> {
   return project @* { } ( .name );
 }
 
+/**
+ * Returns the list of all collections for the given project.
+ *
+ * @param project of the collections to get
+ * @return The list of all collections for the given project
+ */
 query collections(project: name): list<name> {
   return collection @* { .project.name == project } ( .name );
 }
