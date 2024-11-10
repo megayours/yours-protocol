@@ -1,6 +1,22 @@
-query tokens(account_id: byte_array): list<token_balance_dto> {
+query get_token_balances(account_id: byte_array): list<token_balance_dto> {
   return token_balance @* {
     .account.id == account_id
+  } (
+    token_balance_dto (
+      project = .token.collection.project.name,
+      collection = .token.collection.name,
+      token_id = .token.id,
+      type = .token.type.name,
+      amount = .amount
+    )
+  );
+}
+
+query get_token_balance(project: name, collection: name, token_id: integer): token_balance_dto? {
+  return token_balance @? {
+    .token.collection.project.name == project,
+    .token.collection.name == collection,
+    .token.id == token_id
   } (
     token_balance_dto (
       project = .token.collection.project.name,
