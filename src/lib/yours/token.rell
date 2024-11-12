@@ -175,7 +175,7 @@ function get_active_token(project: name, collection: name, token_id: integer): t
     .token.collection.project.name == project,
     .token.collection.name == collection,
     .token.id == token_id
-  } ( .token );
+  } ( .token ) limit 1;
 }
 
 /**
