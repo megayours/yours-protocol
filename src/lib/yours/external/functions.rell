@@ -30,17 +30,25 @@ function _validate_event_topic(topic: text, chain: name, contract: byte_array) {
 function _handle_transfer(sender: byte_array, msg: transfer_message) {
   val from = _ensure_evm_account(msg.from);
   val to = _ensure_evm_account(msg.to);
-  val token = require(
+  val token_data = require(
     external_token @? {
       .chain == msg.chain,
       .contract == msg.contract,
-      .token.id == msg.token_id
-    } ( .token ),
+      .token.id == msg.token_id,
+      .owner == from
+    } ( external_token = $, .token ),
     "Token not found"
   );
 
-  require(token.collection.project.blockchain_rid == sender, "Sending chain isn't the owner of the token");
-  yours._transfer(token, yours.transfer_info(from, to, msg.amount));
+  require(token_data.external_token.amount >= msg.amount, "Insufficient balance to apply external transfer");
+  if (token_data.external_token.amount == msg.amount) {
+    token_data.external_token.owner = to;
+  } else {
+    token_data.external_token.amount -= msg.amount;
+    create external_token ( token_data.token, msg.chain, msg.contract, to, msg.amount );
+  }
+
+  require(token_data.token.collection.project.blockchain_rid == sender, "Sending chain isn't the owner of the token");
 }
 
 function _handle_metadata_updated(sender: byte_array, msg: metadata_updated_message) {
@@ -58,12 +66,15 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
   val spec = yours.token_info(
     project = yours.project_info(msg.project, sender),
     collection = msg.collection,
-    type = yours.token_type.external,
+    type = yours.token_type.external_offchain,
     name = msg.token_name,
     modules = [MODULE_NAME]
   );
 
-  val token = yours.create_token_with_id(spec, msg.token_id);
+  var token = external_token @? { .chain == msg.chain, .contract == msg.contract, .token.id == msg.token_id } ( .token );
+  if (token == null) {
+    token = yours.create_token_with_id(spec, msg.token_id);
+  }
 
   val metadata = yours._json_to_gtv_map(msg.metadata);
   val attributes = _parse_attributes(metadata);
@@ -71,10 +82,10 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
   attributes.put_all(other_attributes);
   yours._import_attributes(token, attributes);
 
-  _attach(token, msg.chain, msg.contract);
-  on_external_create(token, attributes);
+  val account = _ensure_evm_account(msg.to);
 
-  yours._mint(token, yours.balance_info(_ensure_evm_account(msg.to), msg.amount));
+  _attach(token, msg.chain, msg.contract, account, msg.amount);
+  on_external_create(token, attributes);
 }
 
 function _parse_other_attributes(metadata: map<text, gtv>): map<text, gtv> {
@@ -126,15 +137,25 @@ function _parse_attributes(metadata: map<text, gtv>): map<text, gtv> {
   return map<text, gtv>();
 }
 
-function _attach(token: yours.token, chain: name, contract: byte_array) {
+function _attach(
+  token: yours.token,
+  chain: name,
+  contract: byte_array,
+  owner: ft4.accounts.account,
+  amount: integer
+) {
+  log("Attaching %s to %s with amount %s".format(token.id, owner.id, amount));
   yours.attach_module(token, MODULE_NAME);
-  create external_token ( token, chain, contract );
+  val existing_token = external_token @? { token, owner };
+  if (existing_token != null) {
+    existing_token.amount += amount;
+  } else {
+    create external_token ( token, chain, contract, owner, amount );
+  }
 }
 
 function _ensure_evm_account(evm_address: byte_array) {
-  log("Ensuring EVM account for address: %s".format(evm_address.to_hex()));
   var account = ft4.accounts.auth_descriptor_signer @? { .id == evm_address } ( .account_auth_descriptor.account ) limit 1;
-  log("Found account: %s".format(account != null));
   if (account != null) return account;
 
   account = create ft4.accounts.account ( evm_address, ft4.accounts.ACCOUNT_TYPE_USER );

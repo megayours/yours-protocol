@@ -29,6 +29,7 @@ struct yours_metadata {
   modules: list<name>;
   project: project_info;
   collection: name;
+  type: name;
 }
 
 /**
@@ -64,6 +65,7 @@ function get_metadata(token): token_metadata_outgoing {
         name = project.name,
         blockchain_rid = project.blockchain_rid
       ),
+      type = token.type.name,
       modules = token_module @* { token } ( .module_name ),
     )
   );

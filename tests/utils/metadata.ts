@@ -30,6 +30,7 @@ export const createTokenMetadata = (project: ProjectMetadata, collection: string
     modules: [],
     project,
     collection,
+    type: 'yours',
   },
 });
 

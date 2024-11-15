@@ -1,8 +1,71 @@
 import { Session, transactionBuilder } from '@chromia/ft4';
 import { noopAuthenticator, op } from '@chromia/ft4';
-import { TokenMetadata } from './types';
 import { IClient } from 'postchain-client';
-import { serializeTokenMetadata } from './metadata';
+import { createErc1155Properties } from './metadata';
+import { CrosschainTestParams } from './types';
+import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
+
+export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
+  const erc1155Properties = createErc1155Properties();
+  if (params.tokenType === 'nft') {
+    await params.dapp1Session
+      .transactionBuilder()
+      .add(
+        op(
+          'importer.nft',
+          serializeTokenMetadata(params.tokenMetadata),
+          params.tokenId,
+          [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+          'yours'
+        )
+      )
+      .buildAndSend();
+  } else {
+    await params.dapp1Session
+      .transactionBuilder()
+      .add(
+        op(
+          'importer.sft',
+          serializeTokenMetadata(params.tokenMetadata),
+          [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+          'yours'
+        )
+      )
+      .add(op('importer.mint', params.project.name, params.collection, params.tokenId, params.mintAmount))
+      .buildAndSend();
+  }
+
+  const metadata = await params.dapp1Session.query<TokenMetadata>('yours.metadata', {
+    project: params.project.name,
+    collection: params.collection,
+    token_id: params.tokenId,
+  });
+
+  await performCrossChainTransfer(
+    params.dapp1Session,
+    params.dapp2Session.client,
+    params.dapp2Session.account.id,
+    params.tokenId,
+    params.transferAmount,
+    metadata
+  );
+
+  const dapp1Balance = await params.dapp1Session.query<number>('yours.balance', {
+    account_id: params.dapp1Session.account.id,
+    project: params.project.name,
+    collection: params.collection,
+    token_id: params.tokenId,
+  });
+  expect(dapp1Balance).toBe(params.mintAmount - params.transferAmount);
+
+  const dapp2Balance = await params.dapp2Session.query<number>('yours.balance', {
+    account_id: params.dapp2Session.account.id,
+    project: params.project.name,
+    collection: params.collection,
+    token_id: params.tokenId,
+  });
+  expect(dapp2Balance).toBe(params.transferAmount);
+};
 
 export async function performCrossChainTransfer(
   fromSession: Session,

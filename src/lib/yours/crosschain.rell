@@ -28,9 +28,12 @@ operation init_transfer(
   val collection = metadata.yours.collection;
 
   val token = require(get_token(project_info.name, collection, token_id), "Token Not Found");
-  require(get_balance(token, account) >= amount, "Insufficient balance");
-  val existing_metadata = get_metadata(token);
+  require(token.type != token_type.external_offchain, "Unable to bridge an external token currently offchain");
 
+  val balance = get_balance(token, account);
+  require(balance >= amount, "Insufficient balance %s/%s".format(balance, amount));
+
+  val existing_metadata = get_metadata(token);
   _validate_metadata(metadata, existing_metadata);
 
   before_init_transfer(token, account);
@@ -42,6 +45,10 @@ operation init_transfer(
     transaction = op_context.transaction,
     op_index = op_context.op_index
   );
+
+  if (token.type == token_type.external_onchain) {
+    token.type = token_type.external_offchain;
+  }
 
   after_init_transfer(token, account);
 }
@@ -93,17 +100,22 @@ operation apply_transfer(
     init_transfer_details.args.token_id
   );
 
+  val inc_token_type = token_type.value(transferred_metadata.yours.type);
+
   if (token == null) {
+    require(inc_token_type == token_type.yours, "Only a yours token may be created during a crosschain transfer");
     token = create_token_with_id(
       token_info(
         project = transferred_metadata.yours.project,
         collection = transferred_metadata.yours.collection,
-        type = token_type.yours,
+        type = inc_token_type,
         name = transferred_metadata.name,
         modules = transferred_metadata.yours.modules
       ),
       init_transfer_details.args.token_id
     );
+  } else {
+    token.type = inc_token_type;
   }
 
   _apply_transfer(

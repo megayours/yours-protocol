@@ -1,7 +1,8 @@
 enum token_type {
   yours,
-  external,
   soulbound,
+  external_offchain,
+  external_onchain,
 }
 
 /**
@@ -24,7 +25,7 @@ entity collection {
  */
 entity token {
   key collection, id: integer;
-  type: token_type;
+  mutable type: token_type;
   mutable name;
 }
 

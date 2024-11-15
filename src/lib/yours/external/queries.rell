@@ -1,16 +1,22 @@
-query get_token(chain: name, contract: byte_array, token_id: integer) {
+struct token_info {
+  project: name;
+  collection: name;
+  token_id: integer;
+  type: name;
+}
+
+query get_token(chain: name, contract: byte_array, token_id: integer): token_info? {
   return (et: external_token, tb: yours.token_balance) @? {
     et.token == tb.token,
     et.chain == chain,
     et.contract == contract,
     tb.token.id == token_id
   } (
-    yours.token_balance_dto (
+    token_info (
       project = et.token.collection.project.name,
       collection = et.token.collection.name,
       token_id = et.token.id,
-      type = et.token.type.name,
-      amount = tb.amount
+      type = et.token.type.name
     )
   );
 }
@@ -27,29 +33,22 @@ query metadata(chain: name, contract: byte_array, token_id: integer) {
   return yours.get_metadata(token);
 }
 
-query owner_account_id(chain: name, contract: byte_array, token_id: integer) {
-  val token = external_token @? {
+query owners_account_ids(chain: name, contract: byte_array, token_id: integer) {
+  return external_token @* {
     .chain == chain,
     .contract == contract,
     .token.id == token_id
-  } ( .token );
-
-  if (token == null) return null;
-
-  val owners = yours.token_balance @* { token } ( .account );
-  require(owners.size() == 1, "Not a single owner, use %s instead".format(rell.meta(owners_account_ids).module_name));
-
-  return owners[0].id;
+  } ( .owner.id );
 }
 
-query owners_account_ids(chain: name, contract: byte_array, token_id: integer) {
-  val token = external_token @? {
-    .chain == chain,
-    .contract == contract,
-    .token.id == token_id
-  } ( .token );
-
-  if (token == null) return null;
-
-  return yours.token_balance @* { token } ( .account.id );
+query get_tokens(account_id: byte_array): list<yours.token_balance_dto> {
+  return external_token @* { .owner.id == account_id } (
+    yours.token_balance_dto (
+      project = .token.collection.project.name,
+      collection = .token.collection.name,
+      token_id = .token.id,
+      type = .token.type.name,
+      amount = .amount
+    )
+  );
 }

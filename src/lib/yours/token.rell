@@ -103,7 +103,7 @@ function has_module(token, name): boolean {
  */
 function mint(token, info: balance_info) {
   require(token.collection.project.blockchain_rid == chain_context.blockchain_rid, "This chain does not have permission to mint this token");
-  require(token.type != token_type.external, "External tokens cannot be directly minted");
+  require(token.type != token_type.external_offchain and token.type != token_type.external_onchain, "External tokens cannot be directly minted");
   _mint(token, info);
 }
 
@@ -222,6 +222,7 @@ function _burn_balance(token, ft4.accounts.account, amount: integer) {
   val token_balance = require(_get_token_balance(token, account), "Insufficient balance");
   val new_amount = token_balance.amount - amount;
   require(new_amount >= 0, "Insufficient balance");
+  log("Updated balance after burn: %s".format(new_amount));
 
   if (new_amount == 0) {
     delete token_balance;

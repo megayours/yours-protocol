@@ -1,11 +1,12 @@
 import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
 import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
 import { createAccount } from './utils/ft4';
-import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
+import { createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { randomCollectionName } from './utils/random';
 import { encryption } from 'postchain-client';
-import { op, Session } from '@chromia/ft4';
-import { performCrossChainTransfer, ProjectMetadata, serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
+import { performCrossChainTransfer, serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
+import { CrosschainTestParams } from './utils/types';
+import { testCrossChainTransfer } from './utils/crosschain';
 
 describe('Crosschain', () => {
   let environment: TestEnvironment;
@@ -191,78 +192,4 @@ describe('Crosschain', () => {
     },
     TIMEOUT_TEST
   );
-
-  const testCrossChainTransfer = async (params: CrosschainTestParams) => {
-    const erc1155Properties = createErc1155Properties();
-    if (params.tokenType === 'nft') {
-      await params.dapp1Session
-        .transactionBuilder()
-        .add(
-          op(
-            'importer.nft',
-            serializeTokenMetadata(params.tokenMetadata),
-            params.tokenId,
-            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
-            'yours'
-          )
-        )
-        .buildAndSend();
-    } else {
-      await params.dapp1Session
-        .transactionBuilder()
-        .add(
-          op(
-            'importer.sft',
-            serializeTokenMetadata(params.tokenMetadata),
-            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
-            'yours'
-          )
-        )
-        .add(op('importer.mint', params.project.name, params.collection, params.tokenId, params.mintAmount))
-        .buildAndSend();
-    }
-
-    const metadata = await params.dapp1Session.query<TokenMetadata>('yours.metadata', {
-      project: params.project.name,
-      collection: params.collection,
-      token_id: params.tokenId,
-    });
-
-    await performCrossChainTransfer(
-      params.dapp1Session,
-      params.dapp2Session.client,
-      params.dapp2Session.account.id,
-      params.tokenId,
-      params.transferAmount,
-      serializeTokenMetadata(metadata)
-    );
-
-    const dapp1Balance = await params.dapp1Session.query<number>('yours.balance', {
-      account_id: params.dapp1Session.account.id,
-      project: params.project.name,
-      collection: params.collection,
-      token_id: params.tokenId,
-    });
-    expect(dapp1Balance).toBe(params.mintAmount - params.transferAmount);
-
-    const dapp2Balance = await params.dapp2Session.query<number>('yours.balance', {
-      account_id: params.dapp2Session.account.id,
-      project: params.project.name,
-      collection: params.collection,
-      token_id: params.tokenId,
-    });
-    expect(dapp2Balance).toBe(params.transferAmount);
-  };
 });
-
-type CrosschainTestParams = {
-  dapp1Session: Session;
-  dapp2Session: Session;
-  tokenType: 'nft' | 'sft';
-  project: ProjectMetadata;
-  collection: string;
-  tokenId: number;
-  tokenMetadata: TokenMetadata;
-  mintAmount: number;
-  transferAmount: number;
-};

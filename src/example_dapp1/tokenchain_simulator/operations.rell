@@ -9,6 +9,22 @@ operation emit_mint(
   to: byte_array,
   amount: integer
 ) {
+  val token = yours.create_token_with_id(
+    yours.token_info(
+      project = yours.project_info(project, chain_context.blockchain_rid),
+      collection = collection,
+      type = yours.token_type.external_onchain,
+      name = token_name,
+      modules = ["yours_external"]
+    ),
+    token_id
+  );
+
+  create yours.imported_attributes ( token, json = metadata );
+
+  val account = yours.external._ensure_evm_account(to);
+  yours._mint(token, yours.balance_info(account, amount));
+
   val msg = yours
     .external
     .mint_message(
