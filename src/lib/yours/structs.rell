@@ -1,7 +1,7 @@
 struct token_balance_dto {
   project: name;
   collection: name;
-  token_id: integer;
+  token_id: big_integer;
   type: text;
-  amount: integer;
+  amount: big_integer;
 }

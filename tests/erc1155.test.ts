@@ -39,7 +39,7 @@ describe('ERC1155', () => {
       const tokenMetadata = createTokenMetadata(project, collection);
       const erc1155Properties = createErc1155Properties();
 
-      const tokenId = 1;
+      const tokenId = BigInt(1);
 
       const serializedMetadata = serializeTokenMetadata(tokenMetadata);
 
@@ -105,7 +105,7 @@ describe('ERC1155', () => {
             'yours'
           )
         )
-        .add(op('importer.mint', project.name, collection, 0, 1))
+        .add(op('importer.mint', project.name, collection, BigInt(0), BigInt(1)))
         .buildAndSend();
 
       const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {

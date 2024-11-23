@@ -55,7 +55,7 @@ describe('Semi-Fungible Token', () => {
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
       const erc1155Properties = createErc1155Properties();
-      const mintAmount = 2;
+      const mintAmount = BigInt(2);
       await session
         .transactionBuilder()
         .add(
@@ -66,14 +66,14 @@ describe('Semi-Fungible Token', () => {
             'yours'
           )
         )
-        .add(op('importer.mint', project.name, collection, 0, mintAmount))
+        .add(op('importer.mint', project.name, collection, BigInt(0), mintAmount))
         .buildAndSend();
 
       const balance = await session.query<number>('yours.balance', {
         account_id: session.account.id,
         project: project.name,
         collection,
-        token_id: 0,
+        token_id: BigInt(0),
       });
       expect(balance).toBe(mintAmount);
     },
@@ -100,13 +100,13 @@ describe('Semi-Fungible Token', () => {
             'yours'
           )
         )
-        .add(op('importer.mint', project.name, collection, 0, 1))
+        .add(op('importer.mint', project.name, collection, BigInt(0), BigInt(1)))
         .buildAndSend();
 
       const metadata = await session.query<TokenMetadata>('yours.metadata', {
         project: project.name,
         collection,
-        token_id: 0,
+        token_id: BigInt(0),
       });
       expect(metadata.name).toBe(tokenMetadata.name);
       expect(metadata.properties['simple_property']).toEqual(tokenMetadata.properties.simple_property);
@@ -150,14 +150,14 @@ describe('Semi-Fungible Token', () => {
             'soulbound'
           )
         )
-        .add(op('importer.mint', project.name, collection, 0, 1))
+        .add(op('importer.mint', project.name, collection, BigInt(0), BigInt(1)))
         .buildAndSend();
 
       // Now, try to transfer the soulbound SFT and expect it to fail
       await expect(
         session
           .transactionBuilder()
-          .add(op('mkpl.transfer', project.name, collection, 0, 1, Buffer.from('DEADBEEF', 'hex')))
+          .add(op('mkpl.transfer', project.name, collection, BigInt(0), BigInt(1), Buffer.from('DEADBEEF', 'hex')))
           .buildAndSend()
       ).rejects.toThrow('Only tokens of type yours can be transferred');
     },

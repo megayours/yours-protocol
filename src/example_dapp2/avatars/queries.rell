@@ -1,5 +1,5 @@
 struct pudgy_rod {
-  id: integer;
+  id: big_integer;
   name: name;
   durability: integer;
 }

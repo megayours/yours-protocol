@@ -7,7 +7,7 @@ namespace ft4 {
 
 import lib.yours;
 
-operation transfer(project: name, collection: name, token_id: integer, amount: integer, to_account_id: byte_array) {
+operation transfer(project: name, collection: name, token_id: big_integer, amount: big_integer, to_account_id: byte_array) {
   val from_account = ft4.auth.authenticate();
 
   val to_account = ft4.accounts.account @? { .id == to_account_id } ?: create ft4.accounts.account ( id = to_account_id, "DEMO_ACC" );

@@ -1,14 +1,14 @@
-operation equip_fishing_rod(avatar_id: integer, fishing_rod_id: integer) {
+operation equip_fishing_rod(avatar_id: integer, fishing_rod_id: big_integer) {
   val avatar = avatar @ { .token.id == avatar_id };
   val fishing_rod = fishing_rod @ { .token.id == fishing_rod_id };
   create equipped_fishing_rod ( avatar, fishing_rod );
 }
 
-operation unequip_fishing_rod(avatar_id: integer) {
+operation unequip_fishing_rod(avatar_id: big_integer) {
   delete equipped_fishing_rod @ { .avatar.token.id == avatar_id };
 }
 
-operation pull_fish(avatar_id: integer) {
+operation pull_fish(avatar_id: big_integer) {
   val avatar = avatar @ { .token.id == avatar_id };
   avatar.fishes_caught += 1;
 

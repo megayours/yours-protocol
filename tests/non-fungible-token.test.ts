@@ -30,7 +30,7 @@ describe('Non-Fungible Token', () => {
       const tokenMetadata = createTokenMetadata(project, collection);
       const erc1155Properties = createErc1155Properties();
 
-      const tokenId = 0;
+      const tokenId = BigInt(0);
 
       await session
         .transactionBuilder()
@@ -51,7 +51,7 @@ describe('Non-Fungible Token', () => {
         collection,
         token_id: tokenId,
       });
-      expect(balance).toBe(1);
+      expect(balance).toBe(BigInt(1));
     },
     TIMEOUT_TEST
   );
@@ -66,7 +66,7 @@ describe('Non-Fungible Token', () => {
       const collection = randomCollectionName();
       const tokenMetadata = createTokenMetadata(project, collection);
       const erc1155Properties = createErc1155Properties();
-      const tokenId = 1;
+      const tokenId = BigInt(1);
 
       const serializedMetadata = serializeTokenMetadata(tokenMetadata);
 
@@ -118,7 +118,7 @@ describe('Non-Fungible Token', () => {
       const tokenMetadata = createTokenMetadata(project, collection);
       const erc1155Properties = createErc1155Properties();
 
-      const tokenId = 1;
+      const tokenId = BigInt(1);
 
       // First, create the soulbound SFT and mint it
       await session
@@ -138,7 +138,7 @@ describe('Non-Fungible Token', () => {
       await expect(
         session
           .transactionBuilder()
-          .add(op('mkpl.transfer', project.name, collection, tokenId, 1, Buffer.from('DEADBEEF', 'hex')))
+          .add(op('mkpl.transfer', project.name, collection, tokenId, BigInt(1), Buffer.from('DEADBEEF', 'hex')))
           .buildAndSend()
       ).rejects.toThrow('Only tokens of type yours can be transferred');
     },

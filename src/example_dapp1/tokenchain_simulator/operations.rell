@@ -1,14 +1,30 @@
 operation emit_mint(
   project: name,
   collection: name,
-  token_id: integer,
+  token_id: big_integer,
   token_name: name,
   chain: name,
   contract: byte_array,
   metadata: json,
   to: byte_array,
-  amount: integer
+  amount: big_integer
 ) {
+  val token = yours.create_token_with_id(
+    yours.token_info(
+      project = yours.project_info(project, chain_context.blockchain_rid),
+      collection = collection,
+      type = yours.token_type.external_onchain,
+      name = token_name,
+      modules = ["yours_external"]
+    ),
+    token_id
+  );
+
+  create yours.imported_attributes ( token, json = metadata );
+
+  val account = yours.external._ensure_evm_account(to);
+  yours._mint(token, yours.balance_info(account, amount));
+
   val msg = yours
     .external
     .mint_message(
@@ -27,7 +43,7 @@ operation emit_mint(
   send_message(topic, msg.to_gtv());
 }
 
-operation emit_transfer(chain: name, contract: byte_array, token_id: integer, from: byte_array, to: byte_array, amount: integer) {
+operation emit_transfer(chain: name, contract: byte_array, token_id: big_integer, from: byte_array, to: byte_array, amount: big_integer) {
   create external_token ( chain, contract, token_id );
 
   val msg = yours

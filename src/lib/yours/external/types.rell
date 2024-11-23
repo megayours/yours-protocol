@@ -1,11 +1,11 @@
 struct mint_message {
   project: name;
   collection: name;
-  token_id: integer;
+  token_id: big_integer;
   token_name: name;
   metadata: json;
   to: byte_array;
-  amount: integer;
+  amount: big_integer;
   chain: name;
   contract: byte_array;
 }
@@ -13,15 +13,15 @@ struct mint_message {
 struct transfer_message {
   chain: name;
   contract: byte_array;
-  token_id: integer;
+  token_id: big_integer;
   from: byte_array;
   to: byte_array;
-  amount: integer;
+  amount: big_integer;
 }
 
 struct metadata_updated_message {
   chain: name;
   contract: byte_array;
-  token_id: integer;
+  token_id: big_integer;
   metadata: json;
 }
