@@ -1,11 +1,11 @@
 struct token_info {
   project: name;
   collection: name;
-  token_id: integer;
+  token_id: big_integer;
   type: name;
 }
 
-query get_token(chain: name, contract: byte_array, token_id: integer): token_info? {
+query get_token(chain: name, contract: byte_array, token_id: big_integer): token_info? {
   return (et: external_token, tb: yours.token_balance) @? {
     et.token == tb.token,
     et.chain == chain,
@@ -21,7 +21,7 @@ query get_token(chain: name, contract: byte_array, token_id: integer): token_inf
   );
 }
 
-query metadata(chain: name, contract: byte_array, token_id: integer) {
+query metadata(chain: name, contract: byte_array, token_id: big_integer) {
   val token = external_token @? {
     .chain == chain,
     .contract == contract,
@@ -33,7 +33,7 @@ query metadata(chain: name, contract: byte_array, token_id: integer) {
   return yours.get_metadata(token);
 }
 
-query owners_account_ids(chain: name, contract: byte_array, token_id: integer) {
+query owners_account_ids(chain: name, contract: byte_array, token_id: big_integer) {
   return external_token @* {
     .chain == chain,
     .contract == contract,

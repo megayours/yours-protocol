@@ -71,8 +71,8 @@ export async function performCrossChainTransfer(
   fromSession: Session,
   toChain: IClient,
   toAccountId: Buffer,
-  tokenId: number,
-  amount: number,
+  tokenId: bigint,
+  amount: bigint,
   metadata: TokenMetadata
 ): Promise<void> {
   return new Promise((resolve, reject) => {

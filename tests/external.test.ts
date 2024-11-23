@@ -27,7 +27,7 @@ describe('External', () => {
 
       const project = 'Pudgy Penguins';
       const collection = randomCollectionName();
-      const tokenId = 0;
+      const tokenId = BigInt(0);
       const tokenName = 'Pudgy Penguin #1';
       const chain = 'Ethereum';
       const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
@@ -41,7 +41,7 @@ describe('External', () => {
 
       await session
         .transactionBuilder()
-        .add(op('tokenchain_simulator.emit_mint', project, collection, tokenId, tokenName, chain, contract, metadata, to, 1))
+        .add(op('tokenchain_simulator.emit_mint', project, collection, tokenId, tokenName, chain, contract, metadata, to, BigInt(1)))
         .buildAndSend();
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -81,7 +81,7 @@ describe('External', () => {
 
       const project = 'Pudgy Penguins';
       const collection = randomCollectionName();
-      const tokenId = 1;
+      const tokenId = BigInt(1);
       const tokenName = 'Pudgy Penguin #1';
       const chain = 'Ethereum';
       const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
@@ -96,8 +96,8 @@ describe('External', () => {
 
       await session
         .transactionBuilder()
-        .add(op('tokenchain_simulator.emit_mint', project, collection, tokenId, tokenName, chain, contract, metadata, from, 1))
-        .add(op('tokenchain_simulator.emit_transfer', chain, contract, tokenId, from, to, 1))
+        .add(op('tokenchain_simulator.emit_mint', project, collection, tokenId, tokenName, chain, contract, metadata, from, BigInt(1)))
+        .add(op('tokenchain_simulator.emit_transfer', chain, contract, tokenId, from, to, BigInt(1)))
         .buildAndSend();
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
@@ -125,7 +125,7 @@ describe('External', () => {
 
       const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
-      const tokenId = 2;
+      const tokenId = BigInt(2);
       const tokenName = 'Pudgy Penguin #2';
       const chain = 'Ethereum';
       const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
@@ -138,12 +138,25 @@ describe('External', () => {
 
       await dapp1Session
         .transactionBuilder()
-        .add(op('tokenchain_simulator.emit_mint', project.name, collection, tokenId, tokenName, chain, contract, metadata, evmAddress, 1))
+        .add(
+          op(
+            'tokenchain_simulator.emit_mint',
+            project.name,
+            collection,
+            tokenId,
+            tokenName,
+            chain,
+            contract,
+            metadata,
+            evmAddress,
+            BigInt(1)
+          )
+        )
         .buildAndSend();
 
       const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
       expect(ownerships.length).toEqual(1);
-      expect(ownerships[0].amount).toEqual(1);
+      expect(ownerships[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -156,7 +169,7 @@ describe('External', () => {
       expect(ownerAccountIds[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       const megaClient = createMegaYoursClient(dapp1Session);
-      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project.name, collection, tokenId, 1);
+      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project.name, collection, tokenId, BigInt(1));
 
       const dapp1Metadata = await dapp1Session.getMetadata(project.name, collection, tokenId);
       expect(dapp1Metadata).toBeNull();
@@ -188,7 +201,7 @@ describe('External', () => {
 
       const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
-      const tokenId = 3;
+      const tokenId = BigInt(3);
       const tokenName = 'Pudgy Penguin #2';
       const chain = 'Ethereum';
       const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
@@ -201,12 +214,25 @@ describe('External', () => {
 
       await dapp1Session
         .transactionBuilder()
-        .add(op('tokenchain_simulator.emit_mint', project.name, collection, tokenId, tokenName, chain, contract, metadata, evmAddress, 1))
+        .add(
+          op(
+            'tokenchain_simulator.emit_mint',
+            project.name,
+            collection,
+            tokenId,
+            tokenName,
+            chain,
+            contract,
+            metadata,
+            evmAddress,
+            BigInt(1)
+          )
+        )
         .buildAndSend();
 
       const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
       expect(ownerships.length).toEqual(1);
-      expect(ownerships[0].amount).toEqual(1);
+      expect(ownerships[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -220,10 +246,10 @@ describe('External', () => {
       expect(ownerAccountIds[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       // Transfer the token to the other chain
-      await dapp1Session.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project.name, collection, tokenId, 1);
+      await dapp1Session.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project.name, collection, tokenId, BigInt(1));
 
       // Transfer the token back to the original chain
-      await dapp2Session.transferCrosschain(dapp1Session.client, dapp1Session.account.id, project.name, collection, tokenId, 1);
+      await dapp2Session.transferCrosschain(dapp1Session.client, dapp1Session.account.id, project.name, collection, tokenId, BigInt(1));
 
       const dapp1Metadata = await dapp1Session.getMetadata(project.name, collection, tokenId);
       expect(dapp1Metadata).toBeDefined();

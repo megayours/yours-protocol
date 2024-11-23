@@ -16,8 +16,8 @@ function () = ft4.auth.add_overridable_auth_handler(
  */
 operation init_transfer(
   recipient_id: byte_array,
-  token_id: integer,
-  amount: integer,
+  token_id: big_integer,
+  amount: big_integer,
   metadata: token_metadata_incoming
 ) {
   val account = ft4.auth.authenticate();
@@ -171,7 +171,7 @@ operation complete_transfer(
   };
 }
 
-function _apply_transfer(account_id: byte_array, token, amount: integer, token_metadata: token_metadata_incoming) {
+function _apply_transfer(account_id: byte_array, token, amount: big_integer, token_metadata: token_metadata_incoming) {
   _mint(token, balance_info(ft4.accounts.account @ { account_id }, amount));
   _apply_common_metadata(token, token_metadata);
 

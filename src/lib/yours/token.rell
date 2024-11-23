@@ -23,7 +23,7 @@ struct project_info {
  */
 struct balance_info {
   account: ft4.accounts.account;
-  amount: integer;
+  amount: big_integer;
 }
 
 /**
@@ -32,7 +32,7 @@ struct balance_info {
 struct transfer_info {
   from: ft4.accounts.account;
   to: ft4.accounts.account;
-  amount: integer;
+  amount: big_integer;
 }
 
 /**
@@ -41,7 +41,7 @@ struct transfer_info {
  * @param info the information for the token
  * @param token_id the token id
  */
-function create_token_with_id(info: token_info, token_id: integer): token {
+function create_token_with_id(info: token_info, token_id: big_integer): token {
   val project = ensure_project(info.project);
   val collection = ensure_collection(info.collection, project);
   return _create_token(info, collection, token_id);
@@ -155,7 +155,7 @@ function _transfer(token, info: transfer_info) {
  * @param collection the collection name
  * @param token_id the token id
  */
-function get_token(project: name, collection: name, token_id: integer): token? {
+function get_token(project: name, collection: name, token_id: big_integer): token? {
   return token @? {
     .collection.project.name == project,
     .collection.name == collection,
@@ -170,7 +170,7 @@ function get_token(project: name, collection: name, token_id: integer): token? {
  * @param collection the collection name
  * @param token_id the token id
  */
-function get_active_token(project: name, collection: name, token_id: integer): token? {
+function get_active_token(project: name, collection: name, token_id: big_integer): token? {
   return token_balance @? {
     .token.collection.project.name == project,
     .token.collection.name == collection,
@@ -184,11 +184,11 @@ function get_active_token(project: name, collection: name, token_id: integer): t
  * @param token the token to get the balance for
  * @param account the account to get the balance for
  */
-function get_balance(token, account: ft4.accounts.account): integer {
-  return token_balance @? { token, account } ( .amount ) ?: 0;
+function get_balance(token, account: ft4.accounts.account): big_integer {
+  return token_balance @? { token, account } ( .amount ) ?: 0L;
 }
 
-function _create_token(info: token_info, collection, token_id: integer) {
+function _create_token(info: token_info, collection, token_id: big_integer) {
   val token = create token ( info.name, collection, info.type, token_id );
 
   val modules = info.modules;
@@ -201,15 +201,15 @@ function _create_token(info: token_info, collection, token_id: integer) {
   return token;
 }
 
-function _get_next_token_id(collection): integer {
-  return (token @? { collection } ( @max(.id) ) ?: -1) + 1;
+function _get_next_token_id(collection): big_integer {
+  return (token @? { collection } ( @max(.id) ) ?: -1L) + 1L;
 }
 
 function _get_token_balance(token, ft4.accounts.account) {
   return token_balance @? { token, account };
 }
 
-function _mint_balance(token, ft4.accounts.account, amount: integer) {
+function _mint_balance(token, ft4.accounts.account, amount: big_integer) {
   val receiver_balance = _get_token_balance(token, account);
   if (receiver_balance == null) {
     create token_balance ( token, account, amount );
@@ -218,10 +218,10 @@ function _mint_balance(token, ft4.accounts.account, amount: integer) {
   }
 }
 
-function _burn_balance(token, ft4.accounts.account, amount: integer) {
+function _burn_balance(token, ft4.accounts.account, amount: big_integer) {
   val token_balance = require(_get_token_balance(token, account), "Insufficient balance");
   val new_amount = token_balance.amount - amount;
-  require(new_amount >= 0, "Insufficient balance");
+  require(new_amount >= 0L, "Insufficient balance");
   log("Updated balance after burn: %s".format(new_amount));
 
   if (new_amount == 0) {

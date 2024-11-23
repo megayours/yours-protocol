@@ -44,7 +44,7 @@ function populate_metadata(token, modules: set<name>): map<text, gtv>;
  * @param amount the amount of tokens being burned
  */
 @extendable
-function before_burn(token, ft4.accounts.account, amount: integer) {}
+function before_burn(token, ft4.accounts.account, amount: big_integer) {}
 
 /**
  * Allows a caller to hook into the burn process and apply custom logic that has to be executed after.
@@ -54,7 +54,7 @@ function before_burn(token, ft4.accounts.account, amount: integer) {}
  * @param amount the amount of tokens being burned
  */
 @extendable
-function after_burn(token, ft4.accounts.account, amount: integer) {}
+function after_burn(token, ft4.accounts.account, amount: big_integer) {}
 
 /**
  * Allows a caller to hook into the transfer process and apply custom logic that has to be executed before.
@@ -65,7 +65,7 @@ function after_burn(token, ft4.accounts.account, amount: integer) {}
  * @param amount the amount of tokens being transferred
  */
 @extendable
-function before_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: integer) {}
+function before_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: big_integer) {}
 
 /**
  * Allows a caller to hook into the transfer process and apply custom logic that has to be executed after.
@@ -76,7 +76,7 @@ function before_transfer(token, from: ft4.accounts.account, to: ft4.accounts.acc
  * @param amount the amount of tokens being transferred
  */
 @extendable
-function after_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: integer) {}
+function after_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: big_integer) {}
 
 /**
  * Allows a caller to hook into the mint process and apply custom logic that has to be executed before.
@@ -84,7 +84,7 @@ function after_transfer(token, from: ft4.accounts.account, to: ft4.accounts.acco
  * @param token to be minted
  */
 @extendable
-function before_mint(token, ft4.accounts.account, amount: integer) {}
+function before_mint(token, ft4.accounts.account, amount: big_integer) {}
 
 /**
  * Allows a caller to hook into the mint process and apply custom logic that has to be executed after.
@@ -94,4 +94,4 @@ function before_mint(token, ft4.accounts.account, amount: integer) {}
  * @param amount the amount of tokens being minted
  */
 @extendable
-function after_mint(token, ft4.accounts.account, amount: integer) {}
+function after_mint(token, ft4.accounts.account, amount: big_integer) {}

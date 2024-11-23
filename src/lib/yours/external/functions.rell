@@ -142,7 +142,7 @@ function _attach(
   chain: name,
   contract: byte_array,
   owner: ft4.accounts.account,
-  amount: integer
+  amount: big_integer
 ) {
   log("Attaching %s to %s with amount %s".format(token.id, owner.id, amount));
   yours.attach_module(token, MODULE_NAME);

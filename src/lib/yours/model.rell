@@ -24,14 +24,14 @@ entity collection {
  * Dapps are expected to create their own entities which references this token.
  */
 entity token {
-  key collection, id: integer;
+  key collection, id: big_integer;
   mutable type: token_type;
   mutable name;
 }
 
 entity token_balance {
   key token, ft4.accounts.account;
-  mutable amount: integer;
+  mutable amount: big_integer;
 }
 
 /**

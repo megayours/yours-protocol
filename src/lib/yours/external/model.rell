@@ -1,6 +1,6 @@
 entity external_token {
   mutable owner: ft4.accounts.account;
-  mutable amount: integer;
+  mutable amount: big_integer;
   chain: name;
   contract: byte_array;
   key yours.token, owner;

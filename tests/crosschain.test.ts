@@ -31,7 +31,7 @@ describe('Crosschain', () => {
       const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
 
-      const tokenId = 0;
+      const tokenId = BigInt(0);
       const params: CrosschainTestParams = {
         dapp1Session,
         dapp2Session,
@@ -39,9 +39,9 @@ describe('Crosschain', () => {
         project,
         collection,
         tokenId,
-        mintAmount: 1,
+        mintAmount: BigInt(1),
         tokenMetadata,
-        transferAmount: 1,
+        transferAmount: BigInt(1),
       };
 
       // Act
@@ -70,7 +70,7 @@ describe('Crosschain', () => {
       const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
 
-      const tokenId = 0;
+      const tokenId = BigInt(0);
       const params: CrosschainTestParams = {
         dapp1Session,
         dapp2Session,
@@ -78,9 +78,9 @@ describe('Crosschain', () => {
         project,
         collection,
         tokenId,
-        mintAmount: 1,
+        mintAmount: BigInt(1),
         tokenMetadata,
-        transferAmount: 1,
+        transferAmount: BigInt(1),
       };
 
       // Act
@@ -97,7 +97,7 @@ describe('Crosschain', () => {
         environment.dapp1Client,
         dapp1Session.account.id,
         tokenId,
-        1,
+        BigInt(1),
         serializeTokenMetadata(destinationMetadata)
       );
 
@@ -124,7 +124,7 @@ describe('Crosschain', () => {
       const collection = randomCollectionName();
       const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
-      const tokenId = 0;
+      const tokenId = BigInt(0);
       const params: CrosschainTestParams = {
         dapp1Session,
         dapp2Session,
@@ -132,9 +132,9 @@ describe('Crosschain', () => {
         project,
         collection,
         tokenId,
-        mintAmount: 1,
+        mintAmount: BigInt(1),
         tokenMetadata,
-        transferAmount: 1,
+        transferAmount: BigInt(1),
       };
 
       // Act
@@ -164,7 +164,7 @@ describe('Crosschain', () => {
       const collection = randomCollectionName();
       const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const tokenMetadata = createTokenMetadata(project, collection);
-      const tokenId = 0;
+      const tokenId = BigInt(0);
       const params: CrosschainTestParams = {
         dapp1Session,
         dapp2Session,
@@ -173,8 +173,8 @@ describe('Crosschain', () => {
         collection,
         tokenId,
         tokenMetadata,
-        mintAmount: 20,
-        transferAmount: 15,
+        mintAmount: BigInt(20),
+        transferAmount: BigInt(15),
       };
 
       // Act

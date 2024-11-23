@@ -1,13 +1,13 @@
 operation emit_mint(
   project: name,
   collection: name,
-  token_id: integer,
+  token_id: big_integer,
   token_name: name,
   chain: name,
   contract: byte_array,
   metadata: json,
   to: byte_array,
-  amount: integer
+  amount: big_integer
 ) {
   val token = yours.create_token_with_id(
     yours.token_info(
@@ -43,7 +43,7 @@ operation emit_mint(
   send_message(topic, msg.to_gtv());
 }
 
-operation emit_transfer(chain: name, contract: byte_array, token_id: integer, from: byte_array, to: byte_array, amount: integer) {
+operation emit_transfer(chain: name, contract: byte_array, token_id: big_integer, from: byte_array, to: byte_array, amount: big_integer) {
   create external_token ( chain, contract, token_id );
 
   val msg = yours

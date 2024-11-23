@@ -9,8 +9,8 @@ export type CrosschainTestParams = {
   tokenType: 'nft' | 'sft';
   project: ProjectMetadata;
   collection: string;
-  tokenId: number;
+  tokenId: bigint;
   tokenMetadata: TokenMetadata;
-  mintAmount: number;
-  transferAmount: number;
+  mintAmount: bigint;
+  transferAmount: bigint;
 };

@@ -9,7 +9,7 @@ function () = auth.add_auth_handler(
  * Normally you would only provide the attributes and let the dapp code define project, collection, modules, etc for extra validation.
  * We only take this shortcut here to make the test suite a bit easier.
  */
-operation nft(metadata: yours.token_metadata_incoming, token_id: integer, properties: erc1155_properties, token_type: name = "yours") {
+operation nft(metadata: yours.token_metadata_incoming, token_id: big_integer, properties: erc1155_properties, token_type: name = "yours") {
   val account = auth.authenticate();
 
   require(metadata.yours.project.blockchain_rid == chain_context.blockchain_rid);
@@ -70,7 +70,7 @@ operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_prope
   tracker.attach(token);
 }
 
-operation mint(project: name, collection: name, token_id: integer, amount: integer) {
+operation mint(project: name, collection: name, token_id: big_integer, amount: big_integer) {
   val account = auth.authenticate();
 
   val token = require(yours.get_token(project, collection, token_id));
