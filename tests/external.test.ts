@@ -169,14 +169,14 @@ describe('External', () => {
       expect(ownerAccountIds[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       const megaClient = createMegaYoursClient(dapp1Session);
-      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project.name, collection, tokenId, BigInt(1));
+      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Metadata = await dapp1Session.getMetadata(project.name, collection, tokenId);
+      const dapp1Metadata = await dapp1Session.getMetadata(project, collection, tokenId);
       expect(dapp1Metadata).toBeNull();
-      const dapp2Metadata = await dapp2Session.getMetadata(project.name, collection, tokenId);
+      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
       expect(dapp2Metadata).toBeDefined();
 
-      expect(dapp2Metadata.yours.type).toEqual('external_onchain');
+      expect(dapp2Metadata.yours.type).toEqual('external');
 
       expect(dapp2Metadata.name).toEqual(tokenName);
       expect(dapp2Metadata.properties['animation_url']).toEqual('https://pudgypenguins.com/pudgy.mp4');
@@ -246,17 +246,17 @@ describe('External', () => {
       expect(ownerAccountIds[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       // Transfer the token to the other chain
-      await dapp1Session.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project.name, collection, tokenId, BigInt(1));
+      await dapp1Session.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
 
       // Transfer the token back to the original chain
-      await dapp2Session.transferCrosschain(dapp1Session.client, dapp1Session.account.id, project.name, collection, tokenId, BigInt(1));
+      await dapp2Session.transferCrosschain(dapp1Session.client, dapp1Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Metadata = await dapp1Session.getMetadata(project.name, collection, tokenId);
+      const dapp1Metadata = await dapp1Session.getMetadata(project, collection, tokenId);
       expect(dapp1Metadata).toBeDefined();
-      const dapp2Metadata = await dapp2Session.getMetadata(project.name, collection, tokenId);
+      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
       expect(dapp2Metadata).toBeNull();
 
-      expect(dapp1Metadata.yours.type).toEqual('external_onchain');
+      expect(dapp1Metadata.yours.type).toEqual('external');
 
       expect(dapp1Metadata.name).toEqual(tokenName);
       expect(dapp1Metadata.properties['animation_url']).toEqual('https://pudgypenguins.com/pudgy.mp4');

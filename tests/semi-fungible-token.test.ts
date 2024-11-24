@@ -71,7 +71,8 @@ describe('Semi-Fungible Token', () => {
 
       const balance = await session.query<number>('yours.balance', {
         account_id: session.account.id,
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: BigInt(0),
       });
@@ -104,7 +105,8 @@ describe('Semi-Fungible Token', () => {
         .buildAndSend();
 
       const metadata = await session.query<TokenMetadata>('yours.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: BigInt(0),
       });
@@ -157,7 +159,7 @@ describe('Semi-Fungible Token', () => {
       await expect(
         session
           .transactionBuilder()
-          .add(op('mkpl.transfer', project.name, collection, BigInt(0), BigInt(1), Buffer.from('DEADBEEF', 'hex')))
+          .add(op('mkpl.transfer', project.name, project.blockchain_rid, collection, BigInt(0), BigInt(1), Buffer.from('DEADBEEF', 'hex')))
           .buildAndSend()
       ).rejects.toThrow('Only tokens of type yours can be transferred');
     },

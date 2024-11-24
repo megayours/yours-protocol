@@ -103,7 +103,7 @@ function has_module(token, name): boolean {
  */
 function mint(token, info: balance_info) {
   require(token.collection.project.blockchain_rid == chain_context.blockchain_rid, "This chain does not have permission to mint this token");
-  require(token.type != token_type.external_offchain and token.type != token_type.external_onchain, "External tokens cannot be directly minted");
+  require(token.type != token_type.external, "External tokens cannot be directly minted");
   _mint(token, info);
 }
 
@@ -120,6 +120,11 @@ function _mint(token, info: balance_info) {
  * @param info the information for the burn
  */
 function burn(token, info: balance_info) {
+  require(token.type != token_type.external, "External tokens cannot be directly burned");
+  _burn(token, info);
+}
+
+function _burn(token, info: balance_info) {
   before_burn(token, info.account, info.amount);
   _burn_balance(token, info.account, info.amount);
   after_burn(token, info.account, info.amount);
@@ -155,27 +160,48 @@ function _transfer(token, info: transfer_info) {
  * @param collection the collection name
  * @param token_id the token id
  */
-function get_token(project: name, collection: name, token_id: big_integer): token? {
+function get_token(project_name: name, project_blockchain_rid: byte_array, collection: name, token_id: big_integer): token? {
   return token @? {
-    .collection.project.name == project,
+    .collection.project.name == project_name,
+    .collection.project.blockchain_rid == project_blockchain_rid,
     .collection.name == collection,
     .id == token_id
   };
 }
 
 /**
+ * Get a token by its unique id.
+ *
+ * @param uid the unique id
+ */
+function get_token_by_uid(uid: byte_array): token? {
+  return token @? { .uid == uid };
+}
+
+/**
  * An active token is one where there exists a balance for the token.
  *
- * @param project the project name
+ * @param project_name the project name
+ * @param project_blockchain_rid the project blockchain rid
  * @param collection the collection name
  * @param token_id the token id
  */
-function get_active_token(project: name, collection: name, token_id: big_integer): token? {
+function get_active_token(project_name: name, project_blockchain_rid: byte_array, collection: name, token_id: big_integer): token? {
   return token_balance @? {
-    .token.collection.project.name == project,
+    .token.collection.project.name == project_name,
+    .token.collection.project.blockchain_rid == project_blockchain_rid,
     .token.collection.name == collection,
     .token.id == token_id
   } ( .token ) limit 1;
+}
+
+/**
+ * An active token is one where there exists a balance for the token.
+ *
+ * @param uid the unique id
+ */
+function get_active_token_by_uid(uid: byte_array): token? {
+  return token_balance @? { .token.uid == uid } ( .token ) limit 1;
 }
 
 /**
@@ -189,7 +215,14 @@ function get_balance(token, account: ft4.accounts.account): big_integer {
 }
 
 function _create_token(info: token_info, collection, token_id: big_integer) {
-  val token = create token ( info.name, collection, info.type, token_id );
+  val token = create token (
+    info.name,
+    collection,
+    info.type,
+    token_id,
+    uid = generate_unique_id(info.project, collection.name, token_id),
+    decimals = 0
+  );
 
   val modules = info.modules;
   if (modules != null) {

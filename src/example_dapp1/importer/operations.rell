@@ -73,6 +73,6 @@ operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_prope
 operation mint(project: name, collection: name, token_id: big_integer, amount: big_integer) {
   val account = auth.authenticate();
 
-  val token = require(yours.get_token(project, collection, token_id));
+  val token = require(yours.get_token(project, chain_context.blockchain_rid, collection, token_id));
   yours.mint(token, yours.balance_info(account, amount = amount));
 }

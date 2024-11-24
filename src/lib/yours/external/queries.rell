@@ -44,9 +44,10 @@ query owners_account_ids(chain: name, contract: byte_array, token_id: big_intege
 query get_tokens(account_id: byte_array): list<yours.token_balance_dto> {
   return external_token @* { .owner.id == account_id } (
     yours.token_balance_dto (
-      project = .token.collection.project.name,
+      project = yours.project_info(.token.collection.project.name, .token.collection.project.blockchain_rid),
       collection = .token.collection.name,
       token_id = .token.id,
+      uid = .token.uid,
       type = .token.type.name,
       amount = .amount
     )

@@ -1,8 +1,11 @@
 function ensure_project(project_info) {
-  return project @? {
+  val project = project @? {
     project_info.name,
     .blockchain_rid == project_info.blockchain_rid
-  } ?: create project (
+  };
+  if (project != null) return project;
+
+  return create project (
     project_info.name,
     blockchain_rid = project_info.blockchain_rid
   );
@@ -14,4 +17,8 @@ function ensure_collection(name, project) {
 
 function _json_to_gtv_map(json): map<text, gtv> {
   return map<text, gtv>.from_gtv(gtv.from_json(json));
+}
+
+function generate_unique_id(project: project_info, collection: name, token_id: big_integer): byte_array {
+  return (project.name, project.blockchain_rid, collection, token_id).hash();
 }

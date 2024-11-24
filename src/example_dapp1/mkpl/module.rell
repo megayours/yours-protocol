@@ -7,11 +7,11 @@ namespace ft4 {
 
 import lib.yours;
 
-operation transfer(project: name, collection: name, token_id: big_integer, amount: big_integer, to_account_id: byte_array) {
+operation transfer(project_name: name, project_blockchain_rid: byte_array, collection: name, token_id: big_integer, amount: big_integer, to_account_id: byte_array) {
   val from_account = ft4.auth.authenticate();
 
   val to_account = ft4.accounts.account @? { .id == to_account_id } ?: create ft4.accounts.account ( id = to_account_id, "DEMO_ACC" );
-  val token = require(yours.get_token(project, collection, token_id));
+  val token = require(yours.get_token(project_name, project_blockchain_rid, collection, token_id));
 
   yours.transfer(token, yours.transfer_info(from = from_account, to = to_account, amount = amount));
 }

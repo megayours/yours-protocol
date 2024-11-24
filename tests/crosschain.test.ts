@@ -49,7 +49,8 @@ describe('Crosschain', () => {
 
       // Verify
       const metadataDapp2 = await dapp2Session.query<TokenMetadata>('yours.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: tokenId,
       });
@@ -87,7 +88,8 @@ describe('Crosschain', () => {
       await testCrossChainTransfer(params);
 
       const destinationMetadata = await dapp2Session.query<TokenMetadata>('yours.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: tokenId,
       });
@@ -103,7 +105,8 @@ describe('Crosschain', () => {
 
       // Verify
       const sourceMetadata = await dapp1Session.query<TokenMetadata>('yours.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: tokenId,
       });
@@ -142,7 +145,8 @@ describe('Crosschain', () => {
 
       // Verify
       const metadataDapp2 = await dapp2Session.query<TokenMetadata>('yours.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: tokenId,
       });
@@ -182,7 +186,8 @@ describe('Crosschain', () => {
 
       // Verify
       const metadataDapp2 = await dapp2Session.query<TokenMetadata>('yours.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: tokenId,
       });

@@ -66,7 +66,7 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
   val spec = yours.token_info(
     project = yours.project_info(msg.project, sender),
     collection = msg.collection,
-    type = yours.token_type.external_offchain,
+    type = yours.token_type.yours,
     name = msg.token_name,
     modules = [MODULE_NAME]
   );

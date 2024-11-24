@@ -1,7 +1,14 @@
 struct token_balance_dto {
-  project: name;
+  project: project_info;
   collection: name;
   token_id: big_integer;
+  uid: byte_array;
   type: text;
   amount: big_integer;
+}
+
+struct token_identifier {
+  project: project_info;
+  collection: name;
+  token_id: big_integer;
 }

@@ -3,25 +3,10 @@ query get_token_balances(account_id: byte_array): list<token_balance_dto> {
     .account.id == account_id
   } (
     token_balance_dto (
-      project = .token.collection.project.name,
+      project = project_info(.token.collection.project.name, .token.collection.project.blockchain_rid),
       collection = .token.collection.name,
       token_id = .token.id,
-      type = .token.type.name,
-      amount = .amount
-    )
-  );
-}
-
-query get_token_balance(project: name, collection: name, token_id: big_integer): token_balance_dto? {
-  return token_balance @? {
-    .token.collection.project.name == project,
-    .token.collection.name == collection,
-    .token.id == token_id
-  } (
-    token_balance_dto (
-      project = .token.collection.project.name,
-      collection = .token.collection.name,
-      token_id = .token.id,
+      uid = .token.uid,
       type = .token.type.name,
       amount = .amount
     )
@@ -31,11 +16,24 @@ query get_token_balance(project: name, collection: name, token_id: big_integer):
 /**
  * Returns the metadata of all modules the token has been used within.
  *
- * @param token_id of the token to get the metadata for
+ * @param project_name the project name
+ * @param project_blockchain_rid the project blockchain rid
+ * @param collection the collection name
+ * @param token_id the token id
  * @return The metadata of the token in JSON format in order to handle generic attributes values.
  */
-query metadata(project: name, collection: name, token_id: big_integer): token_metadata_outgoing? {
-  val token = get_active_token(project, collection, token_id);
+query metadata(
+  project_name: name,
+  project_blockchain_rid: byte_array,
+  collection: name,
+  token_id: big_integer
+): token_metadata_outgoing? {
+  val token = get_active_token(project_name, project_blockchain_rid, collection, token_id);
+  return if (token != null) get_metadata(token) else null;
+}
+
+query metadata_by_uid(uid: byte_array): token_metadata_outgoing? {
+  val token = get_active_token_by_uid(uid);
   return if (token != null) get_metadata(token) else null;
 }
 
@@ -43,13 +41,31 @@ query metadata(project: name, collection: name, token_id: big_integer): token_me
  * Returns the balance of the token for the given account.
  *
  * @param account_id of the account to get the balance for
- * @param project of the token to get the balance for
+ * @param project_name of the token to get the balance for
+ * @param project_blockchain_rid of the token to get the balance for
  * @param collection of the token to get the balance for
  * @param token_id of the token to get the balance for
  * @return The balance of the token for the given account
  */
-query balance(account_id: byte_array, project: name, collection: name, token_id: big_integer): big_integer {
-  val token = get_active_token(project, collection, token_id);
+query balance(account_id: byte_array, project_name: name, project_blockchain_rid: byte_array, collection: name, token_id: big_integer): big_integer {
+  val token = get_active_token(project_name, project_blockchain_rid, collection, token_id);
+  if (token == null) return 0;
+
+  val account = ft4.accounts.account @? { account_id };
+  if (account == null) return 0;
+
+  return get_balance(token, account);
+}
+
+/**
+ * Returns the balance of the token for the given account by its unique id.
+ *
+ * @param uid the unique id
+ * @param account_id the account id
+ * @return The balance of the token for the given account
+ */
+query balance_by_uid(account_id: byte_array, uid: byte_array): big_integer {
+  val token = get_active_token_by_uid(uid);
   if (token == null) return 0;
 
   val account = ft4.accounts.account @? { account_id };

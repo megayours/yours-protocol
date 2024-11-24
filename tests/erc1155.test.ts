@@ -57,7 +57,8 @@ describe('ERC1155', () => {
         .buildAndSend();
 
       const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: tokenId,
       });
@@ -109,7 +110,8 @@ describe('ERC1155', () => {
         .buildAndSend();
 
       const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {
-        project: project.name,
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
         collection,
         token_id: 0,
       });

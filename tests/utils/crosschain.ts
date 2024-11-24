@@ -36,7 +36,8 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
   }
 
   const metadata = await params.dapp1Session.query<TokenMetadata>('yours.metadata', {
-    project: params.project.name,
+    project_name: params.project.name,
+    project_blockchain_rid: params.project.blockchain_rid,
     collection: params.collection,
     token_id: params.tokenId,
   });
@@ -52,7 +53,8 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
 
   const dapp1Balance = await params.dapp1Session.query<number>('yours.balance', {
     account_id: params.dapp1Session.account.id,
-    project: params.project.name,
+    project_name: params.project.name,
+    project_blockchain_rid: params.project.blockchain_rid,
     collection: params.collection,
     token_id: params.tokenId,
   });
@@ -60,7 +62,8 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
 
   const dapp2Balance = await params.dapp2Session.query<number>('yours.balance', {
     account_id: params.dapp2Session.account.id,
-    project: params.project.name,
+    project_name: params.project.name,
+    project_blockchain_rid: params.project.blockchain_rid,
     collection: params.collection,
     token_id: params.tokenId,
   });

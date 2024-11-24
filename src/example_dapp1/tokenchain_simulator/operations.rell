@@ -13,7 +13,7 @@ operation emit_mint(
     yours.token_info(
       project = yours.project_info(project, chain_context.blockchain_rid),
       collection = collection,
-      type = yours.token_type.external_onchain,
+      type = yours.token_type.external,
       name = token_name,
       modules = ["yours_external"]
     ),

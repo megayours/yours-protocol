@@ -27,8 +27,7 @@ operation init_transfer(
 
   val collection = metadata.yours.collection;
 
-  val token = require(get_token(project_info.name, collection, token_id), "Token Not Found");
-  require(token.type != token_type.external_offchain, "Unable to bridge an external token currently offchain");
+  val token = require(get_token(project_info.name, project_info.blockchain_rid, collection, token_id), "Token Not Found");
 
   val balance = get_balance(token, account);
   require(balance >= amount, "Insufficient balance %s/%s".format(balance, amount));
@@ -38,17 +37,13 @@ operation init_transfer(
 
   before_init_transfer(token, account);
 
-  burn(token, balance_info(account, amount));
+  _burn(token, balance_info(account, amount));
 
   create pending_transfer (
     sender = account,
     transaction = op_context.transaction,
     op_index = op_context.op_index
   );
-
-  if (token.type == token_type.external_onchain) {
-    token.type = token_type.external_offchain;
-  }
 
   after_init_transfer(token, account);
 }
@@ -96,6 +91,7 @@ operation apply_transfer(
   val transferred_metadata = init_transfer_details.args.metadata;
   var token = get_token(
     transferred_metadata.yours.project.name,
+    transferred_metadata.yours.project.blockchain_rid,
     transferred_metadata.yours.collection,
     init_transfer_details.args.token_id
   );
