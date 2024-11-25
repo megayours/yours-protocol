@@ -234,6 +234,13 @@ function get_active_token(project: name, collection: name, token_id: integer): t
   } ( .token );
 }
 
+/**
+ * An active token is one where there exists a balance currently for the token on the blockchain.
+ */
+function get_active_token_by_uid(uid: byte_array): token? {
+  return token_balance @? { .token.uid == uid } ( .token );
+}
+
 function _create_token(info: token_info, collection, token_id: integer) {
   val token = create token ( info.name, collection, token_id, uid = generate_unique_id(info.project, info.collection, token_id) );
 
