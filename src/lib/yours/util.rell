@@ -5,3 +5,7 @@ function ensure_project(name) {
 function ensure_collection(name, project) {
   return collection @? { name } ?: create collection ( name, project );
 }
+
+function generate_unique_id(project: name, collection: name, token_id: big_integer): byte_array {
+  return (project, chain_context.blockchain_rid, collection, token_id).hash();
+}

@@ -13,7 +13,7 @@ libs:
     registry: https://bitbucket.org/chromawallet/ft3-lib
     tagOrBranch: mna-performance
     path: rell/src/lib/ft3
-    rid: x"45214AC9BB47C887EC7BD19D4016486AE5DD663FF30B3FEAA7158F90BABB07AA"
+    rid: x"394F3FEEDB1266FF8D2C5DC84C01AEEC1BD14E9A0FFB7E546133FAE8261B9085"
     insecure: false
 
 compile:

@@ -8,3 +8,8 @@ query metadata(project: name, collection: name, token_id: integer): token_metada
   val token = get_active_token(project, collection, token_id);
   return if (token != null) get_metadata(token) else null;
 }
+
+query metadata_by_uid(uid: byte_array): token_metadata? {
+  val token = get_token_by_uid(uid);
+  return if (token != null) get_metadata(token) else null;
+}

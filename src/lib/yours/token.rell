@@ -215,6 +215,15 @@ function get_token(project: name, collection: name, token_id: integer): token? {
 }
 
 /**
+ * Get a token by its unique ID.
+ *
+ * @param uid the unique ID of the token
+ */
+function get_token_by_uid(uid: byte_array): token? {
+  return token @? { .uid == uid };
+}
+
+/**
  * An active token is one where there exists a balance for the token.
  */
 function get_active_token(project: name, collection: name, token_id: integer): token? {
@@ -226,7 +235,7 @@ function get_active_token(project: name, collection: name, token_id: integer): t
 }
 
 function _create_token(info: token_info, collection, token_id: integer) {
-  val token = create token ( info.name, collection, token_id );
+  val token = create token ( info.name, collection, token_id, uid = generate_unique_id(info.project, info.collection, token_id) );
 
   val modules = info.modules;
   if (modules != null) {
