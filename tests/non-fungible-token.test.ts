@@ -6,7 +6,7 @@ import { op } from '@chromia/ft4';
 import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
-import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
+import { TokenMetadata } from '@megayours/sdk';
 
 describe('Non-Fungible Token', () => {
   let environment: TestEnvironment;
@@ -37,8 +37,11 @@ describe('Non-Fungible Token', () => {
         .add(
           op(
             'importer.nft',
-            serializeTokenMetadata(tokenMetadata),
+            project.name,
+            collection,
+            tokenMetadata.name,
             tokenId,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'yours'
           )
@@ -69,15 +72,16 @@ describe('Non-Fungible Token', () => {
       const erc1155Properties = createErc1155Properties();
       const tokenId = BigInt(1);
 
-      const serializedMetadata = serializeTokenMetadata(tokenMetadata);
-
       await session
         .transactionBuilder()
         .add(
           op(
             'importer.nft',
-            serializedMetadata,
+            project.name,
+            collection,
+            tokenMetadata.name,
             tokenId,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'yours'
           )
@@ -128,8 +132,11 @@ describe('Non-Fungible Token', () => {
         .add(
           op(
             'importer.nft',
-            serializeTokenMetadata(tokenMetadata),
+            project.name,
+            collection,
+            tokenMetadata.name,
             tokenId,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'soulbound'
           )

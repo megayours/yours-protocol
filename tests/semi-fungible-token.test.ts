@@ -6,7 +6,7 @@ import { op } from '@chromia/ft4';
 import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
-import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
+import { TokenMetadata } from '@megayours/sdk';
 
 describe('Semi-Fungible Token', () => {
   let environment: TestEnvironment;
@@ -35,7 +35,10 @@ describe('Semi-Fungible Token', () => {
         .add(
           op(
             'importer.sft',
-            serializeTokenMetadata(tokenMetadata),
+            project.name,
+            collection,
+            tokenMetadata.name,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'yours'
           )
@@ -61,7 +64,10 @@ describe('Semi-Fungible Token', () => {
         .add(
           op(
             'importer.sft',
-            serializeTokenMetadata(tokenMetadata),
+            project.name,
+            collection,
+            tokenMetadata.name,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'yours'
           )
@@ -72,7 +78,7 @@ describe('Semi-Fungible Token', () => {
       const balance = await session.query<number>('yours.balance', {
         account_id: session.account.id,
         project_name: project.name,
-        project_blockchain_rid: project.blockchain_rid,
+        project_blockchain_rid: session.blockchainRid,
         collection,
         token_id: BigInt(0),
       });
@@ -96,7 +102,10 @@ describe('Semi-Fungible Token', () => {
         .add(
           op(
             'importer.sft',
-            serializeTokenMetadata(tokenMetadata),
+            project.name,
+            collection,
+            tokenMetadata.name,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'yours'
           )
@@ -106,7 +115,7 @@ describe('Semi-Fungible Token', () => {
 
       const metadata = await session.query<TokenMetadata>('yours.metadata', {
         project_name: project.name,
-        project_blockchain_rid: project.blockchain_rid,
+        project_blockchain_rid: session.blockchainRid,
         collection,
         token_id: BigInt(0),
       });
@@ -147,7 +156,10 @@ describe('Semi-Fungible Token', () => {
         .add(
           op(
             'importer.sft',
-            serializeTokenMetadata(tokenMetadata),
+            project.name,
+            collection,
+            tokenMetadata.name,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'soulbound'
           )

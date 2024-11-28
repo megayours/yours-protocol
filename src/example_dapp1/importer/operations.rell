@@ -9,23 +9,24 @@ function () = auth.add_auth_handler(
  * Normally you would only provide the attributes and let the dapp code define project, collection, modules, etc for extra validation.
  * We only take this shortcut here to make the test suite a bit easier.
  */
-operation nft(metadata: yours.token_metadata_incoming, token_id: big_integer, properties: erc1155_properties, token_type: name = "yours") {
+operation nft(project: name, collection: name, token_name: name, token_id: big_integer, metadata: json, properties: erc1155_properties, token_type: name = "yours") {
   val account = auth.authenticate();
-
-  require(metadata.yours.project.blockchain_rid == chain_context.blockchain_rid);
 
   val token = yours.create_token_with_id(
     yours.token_info(
-      project = metadata.yours.project,
-      collection = metadata.yours.collection,
+      project = yours.project_info(
+        name = project,
+        blockchain_rid = chain_context.blockchain_rid
+      ),
+      collection = collection,
       type = yours.token_type.value(token_type),
-      name = metadata.name,
+      name = token_name,
       modules = []
     ),
     token_id
   );
 
-  create yours.imported_attributes ( token, json = metadata.properties );
+  create yours.imported_attributes ( token, json = metadata );
 
   erc1155.attach(token);
   erc1155.set_image(token, properties.image);
@@ -44,22 +45,23 @@ operation nft(metadata: yours.token_metadata_incoming, token_id: big_integer, pr
  * Normally you would only provide the attributes and let the dapp code define project, collection, modules, etc for extra validation.
  * We only take this shortcut here to make the test suite a bit easier.
  */
-operation sft(metadata: yours.token_metadata_incoming, properties: erc1155_properties, token_type: name = "yours") {
+operation sft(project: name, collection: name, token_name: name, metadata: json, properties: erc1155_properties, token_type: name = "yours") {
   auth.authenticate();
-
-  require(metadata.yours.project.blockchain_rid == chain_context.blockchain_rid);
 
   val token = yours.create_token(
     yours.token_info(
-      project = metadata.yours.project,
-      collection = metadata.yours.collection,
+      project = yours.project_info(
+        name = project,
+        blockchain_rid = chain_context.blockchain_rid
+      ),
+      collection = collection,
       type = yours.token_type.value(token_type),
-      name = metadata.name,
+      name = token_name,
       modules = []
     )
   );
 
-  create yours.imported_attributes ( token, json = metadata.properties );
+  create yours.imported_attributes ( token, json = metadata );
 
   erc1155.attach(token);
   erc1155.set_image(token, properties.image);

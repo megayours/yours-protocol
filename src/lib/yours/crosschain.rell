@@ -120,6 +120,8 @@ operation apply_transfer(
     init_transfer_details.args.amount,
     transferred_metadata
   );
+
+  _ensure_visited_blockchains(token, transferred_metadata.yours.blockchains);
 }
 
 /**
@@ -236,6 +238,14 @@ function _get_init_transfer_details(tx: gtx_transaction, op_index: integer) {
     args = args,
     sender_account_id = sender_account_id
   );
+}
+
+function _ensure_visited_blockchains(token, blockchains: list<byte_array>) {
+  for (blockchain in blockchains) {
+    if (visited_blockchain @? { token, blockchain } == null) {
+      create visited_blockchain ( token, blockchain );
+    }
+  }
 }
 
 query get_pending_transfers_for_account(account_id: byte_array) {

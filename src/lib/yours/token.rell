@@ -224,6 +224,8 @@ function _create_token(info: token_info, collection, token_id: big_integer) {
     decimals = 0
   );
 
+  create visited_blockchain ( token, chain_context.blockchain_rid );
+
   val modules = info.modules;
   if (modules != null) {
     for (m in modules) {

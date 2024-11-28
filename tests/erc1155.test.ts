@@ -6,7 +6,6 @@ import { op } from '@chromia/ft4';
 import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
-import { serializeTokenMetadata } from '@megayours/sdk';
 
 type ERC1155Metadata = {
   name: string;
@@ -41,15 +40,16 @@ describe('ERC1155', () => {
 
       const tokenId = BigInt(1);
 
-      const serializedMetadata = serializeTokenMetadata(tokenMetadata);
-
       await session
         .transactionBuilder()
         .add(
           op(
             'importer.nft',
-            serializedMetadata,
+            project.name,
+            collection,
+            tokenMetadata.name,
             tokenId,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'yours'
           )
@@ -58,7 +58,7 @@ describe('ERC1155', () => {
 
       const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {
         project_name: project.name,
-        project_blockchain_rid: project.blockchain_rid,
+        project_blockchain_rid: session.blockchainRid,
         collection,
         token_id: tokenId,
       });
@@ -101,7 +101,10 @@ describe('ERC1155', () => {
         .add(
           op(
             'importer.sft',
-            serializeTokenMetadata(tokenMetadata),
+            project.name,
+            collection,
+            tokenMetadata.name,
+            JSON.stringify(tokenMetadata.properties),
             [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
             'yours'
           )
@@ -111,7 +114,7 @@ describe('ERC1155', () => {
 
       const metadata = await session.query<ERC1155Metadata>('erc1155.metadata', {
         project_name: project.name,
-        project_blockchain_rid: project.blockchain_rid,
+        project_blockchain_rid: session.blockchainRid,
         collection,
         token_id: 0,
       });

@@ -13,8 +13,11 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
       .add(
         op(
           'importer.nft',
-          serializeTokenMetadata(params.tokenMetadata),
+          params.project.name,
+          params.collection,
+          params.tokenMetadata.name,
           params.tokenId,
+          JSON.stringify(params.tokenMetadata.properties),
           [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
           'yours'
         )
@@ -26,7 +29,10 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
       .add(
         op(
           'importer.sft',
-          serializeTokenMetadata(params.tokenMetadata),
+          params.project.name,
+          params.collection,
+          params.tokenMetadata.name,
+          JSON.stringify(params.tokenMetadata.properties),
           [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
           'yours'
         )

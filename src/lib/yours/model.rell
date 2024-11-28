@@ -30,6 +30,10 @@ entity token {
   mutable name;
 }
 
+/**
+ * The balance of a token for an account.
+ * A token may still exist without any balances.
+ */
 entity token_balance {
   key token, ft4.accounts.account;
   mutable amount: big_integer;
@@ -56,4 +60,8 @@ entity token_module {
 entity imported_attributes {
   key token;
   mutable json;
+}
+
+entity visited_blockchain {
+  key token, blockchain_rid: byte_array;
 }
