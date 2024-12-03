@@ -2,8 +2,6 @@ struct mint_message {
   project: name;
   collection: name;
   token_id: big_integer;
-  token_name: name;
-  metadata: json;
   to: byte_array;
   amount: big_integer;
   chain: name;

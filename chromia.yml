@@ -11,6 +11,9 @@ definitions:
       - 'net.postchain.d1.icmf.IcmfReceiverSynchronizationInfrastructureExtension'
 
 blockchains:
+  yours:
+    type: library
+    module: lib.yours
   example_dapp1:
     module: example_dapp1
     config:

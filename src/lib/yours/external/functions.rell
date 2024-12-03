@@ -58,6 +58,7 @@ function _handle_metadata_updated(sender: byte_array, msg: metadata_updated_mess
   val name = try_call(text.from_gtv(attributes.get("name"), *));
   if (name != null and token.name != name) token.name = name;
   yours._import_attributes(token, attributes);
+  on_external_update(token, attributes);
 }
 
 function _handle_mint(sender: byte_array, msg: mint_message) {
@@ -67,7 +68,7 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
     project = yours.project_info(msg.project, sender),
     collection = msg.collection,
     type = yours.token_type.yours,
-    name = msg.token_name,
+    name = "TBD",
     modules = [MODULE_NAME]
   );
 
@@ -76,16 +77,9 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
     token = yours.create_token_with_id(spec, msg.token_id);
   }
 
-  val metadata = yours._json_to_gtv_map(msg.metadata);
-  val attributes = _parse_attributes(metadata);
-  val other_attributes = _parse_other_attributes(metadata);
-  attributes.put_all(other_attributes);
-  yours._import_attributes(token, attributes);
-
   val account = _ensure_evm_account(msg.to);
 
   _attach(token, msg.chain, msg.contract, account, msg.amount);
-  on_external_create(token, attributes);
 }
 
 function _parse_other_attributes(metadata: map<text, gtv>): map<text, gtv> {

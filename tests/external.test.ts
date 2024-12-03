@@ -32,7 +32,7 @@ describe('External', () => {
       const chain = 'Ethereum';
       const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
       const metadata = JSON.stringify({
-        name: 'Pudgy Penguin',
+        name: tokenName,
         description: 'Pudgy Penguin',
         image: 'https://pudgypenguins.com/pudgy.png',
         animation_url: 'https://pudgypenguins.com/pudgy.mp4',
@@ -130,7 +130,7 @@ describe('External', () => {
       const chain = 'Ethereum';
       const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
       const metadata = JSON.stringify({
-        name: 'Pudgy Penguin',
+        name: tokenName,
         description: 'Pudgy Penguin',
         image: 'https://pudgypenguins.com/pudgy.png',
         animation_url: 'https://pudgypenguins.com/pudgy.mp4',

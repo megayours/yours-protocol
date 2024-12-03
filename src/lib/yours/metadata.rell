@@ -75,7 +75,15 @@ function get_metadata(token): token_metadata_outgoing {
 
 function _import_attributes(token: token, inc_attributes: map<text, gtv>) {
   // Clean properties that shouldn't be stored as attributes
-  inc_attributes.remove_or_null("name");
+  val name = inc_attributes.get_or_null("name");
+  if (name != null) {
+    val name_text = text.from_gtv(name);
+    if (token.name != name_text) {
+      token.name = name_text;
+    }
+
+    inc_attributes.remove("name");
+  }
 
   val attributes = inc_attributes.to_gtv().to_json();
 

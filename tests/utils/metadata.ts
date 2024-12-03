@@ -31,6 +31,7 @@ export const createTokenMetadata = (project: ProjectMetadata, collection: string
     project,
     collection,
     type: 'yours',
+    blockchains: [],
   },
 });
 
