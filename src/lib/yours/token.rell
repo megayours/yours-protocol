@@ -254,7 +254,7 @@ function _mint_balance(token, ft4.accounts.account, amount: big_integer) {
 }
 
 function _burn_balance(token, ft4.accounts.account, amount: big_integer) {
-  val token_balance = require(_get_token_balance(token, account), "Insufficient balance");
+  val token_balance = require(_get_token_balance(token, account), "Insufficient balance of %s, no balance found for: %s".format(token.id, account.id.to_hex()));
   val new_amount = token_balance.amount - amount;
   require(new_amount >= 0L, "Insufficient balance of %s %s/%s".format(token.id, token_balance.amount, amount));
 
