@@ -15,6 +15,7 @@ function () = ft4.auth.add_overridable_auth_handler(
  * @param metadata The metadata to be initialized for the transfer. Expected to be in `gtv_pretty` format.
  */
 operation init_transfer(
+  target_blockchain_rid: byte_array,
   recipient_id: byte_array,
   token_id: big_integer,
   amount: big_integer,
@@ -37,7 +38,7 @@ operation init_transfer(
 
   before_init_transfer(token, account);
 
-  _burn(token, balance_info(account, amount));
+  _burn(token, balance_info(account, amount), target_blockchain_rid);
 
   create pending_transfer (
     sender = account,
@@ -75,10 +76,12 @@ operation apply_transfer(
   init_transfer_tx: gtx_transaction,
   init_tx_op_index: integer
 ) {
-  val (init_transfer_details, _) = _validate_apply_transfer(
+  val (init_transfer_details, crosschain_source_blockchain_rid) = _validate_apply_transfer(
     init_transfer_tx,
     init_tx_op_index
   );
+
+  require(init_transfer_details.args.target_blockchain_rid == chain_context.blockchain_rid, "Invalid target blockchain");
 
   // Add transfer to applied transfers table so that it cannot be applied more than once
   create applied_transfers (
@@ -118,6 +121,7 @@ operation apply_transfer(
     init_transfer_details.args.recipient_id,
     token,
     init_transfer_details.args.amount,
+    crosschain_source_blockchain_rid,
     transferred_metadata
   );
 
@@ -169,8 +173,8 @@ operation complete_transfer(
   };
 }
 
-function _apply_transfer(account_id: byte_array, token, amount: big_integer, token_metadata: token_metadata_incoming) {
-  _mint(token, balance_info(ft4.accounts.account @ { account_id }, amount));
+function _apply_transfer(account_id: byte_array, token, amount: big_integer, crosschain_source_blockchain_rid: byte_array, token_metadata: token_metadata_incoming) {
+  _mint(token, balance_info(ft4.accounts.account @ { account_id }, amount), crosschain_source_blockchain_rid);
   _apply_common_metadata(token, token_metadata);
 
   val attributes = _json_to_gtv_map(token_metadata.properties);

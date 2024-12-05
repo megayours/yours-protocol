@@ -197,4 +197,126 @@ describe('Crosschain', () => {
     },
     TIMEOUT_TEST
   );
+
+  it(
+    'crosschain saves history entries for nft',
+    async () => {
+      // Arrange
+      const keyPair = encryption.makeKeyPair();
+      const dapp1Session = await createAccount(environment.dapp1Client, keyPair);
+      const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
+
+      const collection = randomCollectionName();
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
+      const tokenMetadata = createTokenMetadata(project, collection);
+      const tokenId = BigInt(0);
+      const params: CrosschainTestParams = {
+        dapp1Session,
+        dapp2Session,
+        tokenType: 'nft',
+        project,
+        collection,
+        tokenId,
+        mintAmount: BigInt(1),
+        tokenMetadata,
+        transferAmount: BigInt(1),
+      };
+
+      // Act
+      await testCrossChainTransfer(params);
+
+      // Verify
+      const sourceChainHistory = await dapp1Session.getTransferHistoryByAccount(dapp1Session.account.id, null, 1, null);
+      expect(sourceChainHistory.data.length).toBe(1);
+      expect(sourceChainHistory.data[0].amount).toBe(BigInt(1));
+      expect(sourceChainHistory.data[0].blockchain_rid).toEqual(dapp2Session.blockchainRid);
+      expect(sourceChainHistory.data[0].decimals).toBe(0);
+      expect(sourceChainHistory.data[0].op_index).toBe(1);
+      expect(sourceChainHistory.data[0].type).toBe('sent');
+      expect(sourceChainHistory.data[0].token).toBeDefined();
+      expect(sourceChainHistory.data[0].token.project).toBeDefined();
+      expect(sourceChainHistory.data[0].token.project.name).toBe(project.name);
+      expect(sourceChainHistory.data[0].token.project.blockchain_rid).toEqual(project.blockchain_rid);
+      expect(sourceChainHistory.data[0].token.collection).toBe(collection);
+      expect(sourceChainHistory.data[0].token.id).toBe(BigInt(0));
+      expect(sourceChainHistory.data[0].token.name).toBe(tokenMetadata.name);
+
+      const targetChainHistory = await dapp2Session.getTransferHistoryByAccount(dapp2Session.account.id, null, 1, null);
+      expect(targetChainHistory.data.length).toBe(1);
+      expect(targetChainHistory.data[0].amount).toBe(BigInt(1));
+      expect(targetChainHistory.data[0].blockchain_rid).toEqual(dapp1Session.blockchainRid);
+      expect(targetChainHistory.data[0].decimals).toBe(0);
+      expect(targetChainHistory.data[0].op_index).toBe(1);
+      expect(targetChainHistory.data[0].type).toBe('received');
+      expect(targetChainHistory.data[0].token).toBeDefined();
+      expect(targetChainHistory.data[0].token.project).toBeDefined();
+      expect(targetChainHistory.data[0].token.project.name).toBe(project.name);
+      expect(targetChainHistory.data[0].token.project.blockchain_rid).toEqual(project.blockchain_rid);
+      expect(targetChainHistory.data[0].token.collection).toBe(collection);
+      expect(targetChainHistory.data[0].token.id).toBe(BigInt(0));
+      expect(targetChainHistory.data[0].token.name).toBe(tokenMetadata.name);
+    },
+    TIMEOUT_TEST
+  );
+
+  it(
+    'crosschain saves history entries for sft',
+    async () => {
+      // Arrange
+      const keyPair = encryption.makeKeyPair();
+      const dapp1Session = await createAccount(environment.dapp1Client, keyPair);
+      const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
+
+      const collection = randomCollectionName();
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
+      const tokenMetadata = createTokenMetadata(project, collection);
+      const tokenId = BigInt(0);
+      const params: CrosschainTestParams = {
+        dapp1Session,
+        dapp2Session,
+        tokenType: 'sft',
+        project,
+        collection,
+        tokenId,
+        tokenMetadata,
+        mintAmount: BigInt(20),
+        transferAmount: BigInt(15),
+      };
+
+      // Act
+      await testCrossChainTransfer(params);
+
+      // Verify
+      const sourceChainHistory = await dapp1Session.getTransferHistoryByAccount(dapp1Session.account.id, null, 1, null);
+      expect(sourceChainHistory.data.length).toBe(1);
+      expect(sourceChainHistory.data[0].amount).toBe(BigInt(15));
+      expect(sourceChainHistory.data[0].blockchain_rid).toEqual(dapp2Session.blockchainRid);
+      expect(sourceChainHistory.data[0].decimals).toBe(0);
+      expect(sourceChainHistory.data[0].op_index).toBe(1);
+      expect(sourceChainHistory.data[0].type).toBe('sent');
+      expect(sourceChainHistory.data[0].token).toBeDefined();
+      expect(sourceChainHistory.data[0].token.project).toBeDefined();
+      expect(sourceChainHistory.data[0].token.project.name).toBe(project.name);
+      expect(sourceChainHistory.data[0].token.project.blockchain_rid).toEqual(project.blockchain_rid);
+      expect(sourceChainHistory.data[0].token.collection).toBe(collection);
+      expect(sourceChainHistory.data[0].token.id).toBe(BigInt(0));
+      expect(sourceChainHistory.data[0].token.name).toBe(tokenMetadata.name);
+
+      const targetChainHistory = await dapp2Session.getTransferHistoryByAccount(dapp2Session.account.id, null, 1, null);
+      expect(targetChainHistory.data.length).toBe(1);
+      expect(targetChainHistory.data[0].amount).toBe(BigInt(15));
+      expect(targetChainHistory.data[0].blockchain_rid).toEqual(dapp1Session.blockchainRid);
+      expect(targetChainHistory.data[0].decimals).toBe(0);
+      expect(targetChainHistory.data[0].op_index).toBe(1);
+      expect(targetChainHistory.data[0].type).toBe('received');
+      expect(targetChainHistory.data[0].token).toBeDefined();
+      expect(targetChainHistory.data[0].token.project).toBeDefined();
+      expect(targetChainHistory.data[0].token.project.name).toBe(project.name);
+      expect(targetChainHistory.data[0].token.project.blockchain_rid).toEqual(project.blockchain_rid);
+      expect(targetChainHistory.data[0].token.collection).toBe(collection);
+      expect(targetChainHistory.data[0].token.id).toBe(BigInt(0));
+      expect(targetChainHistory.data[0].token.name).toBe(tokenMetadata.name);
+    },
+    TIMEOUT_TEST
+  );
 });

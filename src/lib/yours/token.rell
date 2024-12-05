@@ -104,12 +104,12 @@ function has_module(token, name): boolean {
 function mint(token, info: balance_info) {
   require(token.collection.project.blockchain_rid == chain_context.blockchain_rid, "This chain does not have permission to mint this token");
   require(token.type != token_type.external, "External tokens cannot be directly minted");
-  _mint(token, info);
+  _mint(token, info, null);
 }
 
-function _mint(token, info: balance_info) {
+function _mint(token, info: balance_info, crosschain_source_blockchain_rid: byte_array?) {
   before_mint(token, info.account, info.amount);
-  _mint_balance(token, info.account, info.amount);
+  _mint_balance(token, info.account, info.amount, crosschain_source_blockchain_rid);
   after_mint(token, info.account, info.amount);
 }
 
@@ -121,12 +121,12 @@ function _mint(token, info: balance_info) {
  */
 function burn(token, info: balance_info) {
   require(token.type != token_type.external, "External tokens cannot be directly burned");
-  _burn(token, info);
+  _burn(token, info, null);
 }
 
-function _burn(token, info: balance_info) {
+function _burn(token, info: balance_info, crosschain_target_blockchain_rid: byte_array?) {
   before_burn(token, info.account, info.amount);
-  _burn_balance(token, info.account, info.amount);
+  _burn_balance(token, info.account, info.amount, crosschain_target_blockchain_rid);
   after_burn(token, info.account, info.amount);
 }
 
@@ -138,7 +138,7 @@ function _burn(token, info: balance_info) {
  */
 function transfer(token, info: transfer_info) {
   require(token.type == token_type.yours, "Only tokens of type yours can be transferred");
-  _transfer(token, info);
+  _transfer(token, info, null);
 }
 
 /**
@@ -147,10 +147,10 @@ function transfer(token, info: transfer_info) {
  * @param token to transfer
  * @param info the information for the transfer
  */
-function _transfer(token, info: transfer_info) {
+function _transfer(token, info: transfer_info, blockchain_rid: byte_array?) {
   before_transfer(token, info.from, info.to, info.amount);
-  _burn_balance(token, info.from, info.amount);
-  _mint_balance(token, info.to, info.amount);
+  _burn_balance(token, info.from, info.amount, blockchain_rid);
+  _mint_balance(token, info.to, info.amount, blockchain_rid);
   after_transfer(token, info.from, info.to, info.amount);
 }
 
@@ -244,16 +244,22 @@ function _get_token_balance(token, ft4.accounts.account) {
   return token_balance @? { token, account };
 }
 
-function _mint_balance(token, ft4.accounts.account, amount: big_integer) {
+function _mint_balance(token, ft4.accounts.account, amount: big_integer, blockchain_rid: byte_array?) {
   val receiver_balance = _get_token_balance(token, account);
   if (receiver_balance == null) {
     create token_balance ( token, account, amount );
   } else {
     receiver_balance.amount += amount;
   }
+
+  if (blockchain_rid != null) {
+    log_crosschain_transfer_history_entry(token, account, amount, transfer_type.received, blockchain_rid);
+  } else {
+    log_transfer_history_entry(token, account, amount, transfer_type.received);
+  }
 }
 
-function _burn_balance(token, ft4.accounts.account, amount: big_integer) {
+function _burn_balance(token, ft4.accounts.account, amount: big_integer, blockchain_rid: byte_array?) {
   val token_balance = require(_get_token_balance(token, account), "Insufficient balance of %s, no balance found for: %s".format(token.id, account.id.to_hex()));
   val new_amount = token_balance.amount - amount;
   require(new_amount >= 0L, "Insufficient balance of %s %s/%s".format(token.id, token_balance.amount, amount));
@@ -262,5 +268,11 @@ function _burn_balance(token, ft4.accounts.account, amount: big_integer) {
     delete token_balance;
   } else {
     token_balance.amount = new_amount;
+  }
+
+  if (blockchain_rid != null) {
+    log_crosschain_transfer_history_entry(token, account, amount, transfer_type.sent, blockchain_rid);
+  } else {
+    log_transfer_history_entry(token, account, amount, transfer_type.sent);
   }
 }

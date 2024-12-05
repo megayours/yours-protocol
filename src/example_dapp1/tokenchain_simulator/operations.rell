@@ -23,7 +23,7 @@ operation emit_mint(
   create yours.imported_attributes ( token, json = metadata );
 
   val account = yours.external._ensure_evm_account(to);
-  yours._mint(token, yours.balance_info(account, amount));
+  yours._mint(token, yours.balance_info(account, amount), chain_context.blockchain_rid);
 
   val msg = yours
     .external

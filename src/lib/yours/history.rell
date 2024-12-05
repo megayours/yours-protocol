@@ -1,0 +1,90 @@
+enum transfer_type {
+  sent,
+  received,
+}
+
+@log
+entity transfer_history_entry {
+  op_index: integer;
+  token;
+  ft4.accounts.account;
+  amount: big_integer;
+  type: transfer_type;
+}
+
+@log
+entity crosschain_transfer_history_entry {
+  key transfer_history_entry;
+  blockchain_rid: byte_array;
+}
+
+function log_transfer_history_entry(token, ft4.accounts.account, amount: big_integer, type: transfer_type) {
+  return create transfer_history_entry (
+    op_index = op_context.op_index,
+    token = token,
+    account = account,
+    amount = amount,
+    type = type
+  );
+}
+
+function log_crosschain_transfer_history_entry(
+  token,
+  ft4.accounts.account,
+  amount: big_integer,
+  type: transfer_type,
+  blockchain_rid: byte_array
+) {
+  return create crosschain_transfer_history_entry (
+    transfer_history_entry = log_transfer_history_entry(token, account, amount, type),
+    blockchain_rid = blockchain_rid
+  );
+}
+
+function get_paginated_transfers(ft4.accounts.account?, token?, type: transfer_type?, height: integer?, page_size: integer?, page_cursor: text?) {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val entries = transfer_history_entry @* {
+    if (account == null) true else .account == account,
+    if (token == null) true else .token == token,
+    if (type == null) true else .type == type,
+    if (height == null) true else (.transaction.block.block_height > height),
+    if (before_rowid??) (.rowid < before_rowid) else true
+  } ( @sort_desc $ ) limit fetch_data_size(page_size);
+
+  return extract_data_from_transfer_history_list(entries) @* { } (
+      pagination_result (
+        data = .data,
+        rowid = .rowid
+      )
+    );
+}
+
+function extract_data_from_transfer_history_list(
+  entries: list<transfer_history_entry>
+): list<(data:gtv,rowid:rowid)> {
+  return entries @* { } (
+    data = extract_data_from_transfer_history_entry ($).to_gtv_pretty(),
+    rowid = .rowid
+  );
+}
+
+function extract_data_from_transfer_history_entry(entry: transfer_history_entry) {
+  return (
+    id = entry.rowid,
+    amount = entry.amount,
+    decimals = entry.token.decimals,
+    token = map_token(entry.token),
+    type = entry.type,
+    timestamp = entry.transaction.block.timestamp,
+    block_height = entry.transaction.block.block_height,
+    tx_rid = entry.transaction.tx_rid,
+    tx_data = entry.transaction.tx_data,
+    op_index = entry.op_index,
+    blockchain_rid = crosschain_transfer_history_entry @? { entry } ( .blockchain_rid )
+  );
+}

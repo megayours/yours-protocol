@@ -92,3 +92,57 @@ query projects(): list<name> {
 query collections(project: name): list<name> {
   return collection @* { .project.name == project } ( .name );
 }
+
+/**
+ * Returns the list of transfers for the given account.
+ *
+ * @param account_id the account id
+ * @param type the transfer type
+ * @return The list of transfers for the given account
+ */
+query get_transfer_history(account_id: byte_array, type: transfer_type?, page_size: integer?, page_cursor: text?) {
+  val account = ft4.accounts.account @? { account_id };
+  if (empty(account)) return null;
+
+  val paginated_transfers = get_paginated_transfers(
+    account = account,
+    token = null,
+    type = type,
+    height = null,
+    page_size = page_size,
+    page_cursor = page_cursor
+  );
+  return make_page(paginated_transfers, page_size);
+}
+
+/**
+ * Returns the list of transfers for the given token.
+ *
+ * @param height the height
+ * @param token_uid the token uid
+ * @return The list of transfers for the given token
+ */
+query get_transfer_history_from_height(height: integer, token_uid: byte_array?, page_size: integer?, page_cursor: text?) {
+  val token = if (token_uid != null) get_token_by_uid(token_uid) else null;
+
+  val paginated_transfers = get_paginated_transfers(
+    account = null,
+    token = token,
+    type = null,
+    height = height,
+    page_size = page_size,
+    page_cursor = page_cursor
+  );
+  return make_page(paginated_transfers, page_size);
+}
+
+/**
+ * Returns the transfer history entry for the given rowid.
+ *
+ * @param rowid the rowid
+ * @return The transfer history entry for the given rowid
+ */
+query get_transfer_history_entry(rowid) {
+  val entry = transfer_history_entry @? { .rowid == rowid };
+  return if (empty(entry)) null else extract_data_from_transfer_history_entry(entry);
+}

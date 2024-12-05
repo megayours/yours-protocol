@@ -1,0 +1,18 @@
+function map_token(token) {
+  return (
+    id = token.id,
+    uid = token.uid,
+    name = token.name,
+    decimals = token.decimals,
+    project = map_project(token.collection.project),
+    collection = token.collection.name,
+    type = token.type
+  );
+}
+
+function map_project(project) {
+  return (
+    name = project.name,
+    blockchain_rid = project.blockchain_rid
+  );
+}

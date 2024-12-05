@@ -12,3 +12,17 @@ struct token_identifier {
   collection: name;
   token_id: big_integer;
 }
+
+struct page_cursor {
+  before_rowid: rowid? = null;
+}
+
+struct pagination_result {
+  data: gtv;
+  rowid: rowid;
+}
+
+struct paged_result {
+  next_cursor: text?;
+  data: list<gtv>;
+}
