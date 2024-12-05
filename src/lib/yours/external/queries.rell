@@ -33,23 +33,49 @@ query metadata(chain: name, contract: byte_array, token_id: big_integer) {
   return yours.get_metadata(token);
 }
 
-query owners_account_ids(chain: name, contract: byte_array, token_id: big_integer) {
-  return external_token @* {
+query owners_account_ids(chain: name, contract: byte_array, token_id: big_integer, page_size: integer?, page_cursor: text?): yours.paged_result {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = yours.decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val paginated_owners = external_token @* {
     .chain == chain,
     .contract == contract,
-    .token.id == token_id
-  } ( .owner.id );
+    .token.id == token_id,
+    if (before_rowid??) (.rowid < before_rowid) else true
+  } (
+    yours.pagination_result (
+      data = .owner.id.to_gtv_pretty(),
+      rowid = .rowid
+    )
+  ) limit yours.fetch_data_size(page_size);
+  return yours.make_page(paginated_owners, page_size);
 }
 
-query get_tokens(account_id: byte_array): list<yours.token_balance_dto> {
-  return external_token @* { .owner.id == account_id } (
-    yours.token_balance_dto (
+query get_tokens(account_id: byte_array, page_size: integer?, page_cursor: text?): yours.paged_result {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = yours.decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val paginated_tokens = external_token @* {
+    .owner.id == account_id,
+    if (before_rowid??) (.rowid < before_rowid) else true
+  } (
+    yours.pagination_result (
+      data = yours.token_balance_dto (
       project = yours.project_info(.token.collection.project.name, .token.collection.project.blockchain_rid),
       collection = .token.collection.name,
       token_id = .token.id,
       uid = .token.uid,
       type = .token.type.name,
-      amount = .amount
-    )
-  );
+        amount = .amount
+      ).to_gtv_pretty(),
+      rowid = .rowid
+  )
+  ) limit yours.fetch_data_size(page_size);
+  return yours.make_page(paginated_tokens, page_size);
 }

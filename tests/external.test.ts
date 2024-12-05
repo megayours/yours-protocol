@@ -46,14 +46,16 @@ describe('External', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
-      const ownerAccountIds = await environment.dapp2Client.query<Buffer[]>('yours.external.owners_account_ids', {
+      const ownerAccountIds = await environment.dapp2Client.query<{ data: Buffer[] }>('yours.external.owners_account_ids', {
         chain,
         contract,
         token_id: tokenId,
+        page_size: null,
+        page_cursor: null,
       });
 
-      expect(ownerAccountIds.length).toEqual(1);
-      expect(ownerAccountIds[0].toString('hex')).toEqual(to.toString('hex'));
+      expect(ownerAccountIds.data.length).toEqual(1);
+      expect(ownerAccountIds.data[0].toString('hex')).toEqual(to.toString('hex'));
 
       const dapp2Metadata = await environment.dapp2Client.query<TokenMetadata>('yours.external.metadata', {
         chain,
@@ -102,14 +104,16 @@ describe('External', () => {
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
-      const ownerAccountIds = await environment.dapp2Client.query<Buffer[]>('yours.external.owners_account_ids', {
+      const ownerAccountIds = await environment.dapp2Client.query<{ data: Buffer[] }>('yours.external.owners_account_ids', {
         chain,
         contract,
         token_id: tokenId,
+        page_size: null,
+        page_cursor: null,
       });
 
-      expect(ownerAccountIds.length).toEqual(1);
-      expect(ownerAccountIds[0].toString('hex')).toEqual(to.toString('hex'));
+      expect(ownerAccountIds.data.length).toEqual(1);
+      expect(ownerAccountIds.data[0].toString('hex')).toEqual(to.toString('hex'));
     },
     TIMEOUT_TEST
   );
@@ -155,18 +159,14 @@ describe('External', () => {
         .buildAndSend();
 
       const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
-      expect(ownerships.length).toEqual(1);
-      expect(ownerships[0].amount).toEqual(BigInt(1));
+      expect(ownerships.data.length).toEqual(1);
+      expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
-      const ownerAccountIds = await environment.dapp2Client.query<Buffer[]>('yours.external.owners_account_ids', {
-        chain,
-        contract,
-        token_id: tokenId,
-      });
-      expect(ownerAccountIds.length).toEqual(1);
-      expect(ownerAccountIds[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
+      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      expect(ownerAccountIds.data.length).toEqual(1);
+      expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       const megaClient = createMegaYoursClient(dapp1Session);
       await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
@@ -231,19 +231,15 @@ describe('External', () => {
         .buildAndSend();
 
       const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
-      expect(ownerships.length).toEqual(1);
-      expect(ownerships[0].amount).toEqual(BigInt(1));
+      expect(ownerships.data.length).toEqual(1);
+      expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Ensure the token was picked up by the other chain
-      const ownerAccountIds = await environment.dapp2Client.query<Buffer[]>('yours.external.owners_account_ids', {
-        chain,
-        contract,
-        token_id: tokenId,
-      });
-      expect(ownerAccountIds.length).toEqual(1);
-      expect(ownerAccountIds[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
+      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      expect(ownerAccountIds.data.length).toEqual(1);
+      expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       // Transfer the token to the other chain
       await dapp1Session.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));

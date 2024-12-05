@@ -1,16 +1,27 @@
-query get_token_balances(account_id: byte_array): list<token_balance_dto> {
-  return token_balance @* {
-    .account.id == account_id
+query get_token_balances(account_id: byte_array, page_size: integer?, page_cursor: text?): paged_result {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val paginated_token_balances = token_balance @* {
+    .account.id == account_id,
+    if (before_rowid??) (.rowid < before_rowid) else true
   } (
-    token_balance_dto (
+    pagination_result (
+      data = token_balance_dto(
       project = project_info(.token.collection.project.name, .token.collection.project.blockchain_rid),
       collection = .token.collection.name,
       token_id = .token.id,
       uid = .token.uid,
       type = .token.type.name,
       amount = .amount
+      ).to_gtv_pretty(),
+      rowid = .rowid
     )
-  );
+  ) limit fetch_data_size(page_size);
+  return make_page(paginated_token_balances, page_size);
 }
 
 /**
@@ -79,8 +90,22 @@ query balance_by_uid(account_id: byte_array, uid: byte_array): big_integer {
  *
  * @return The list of all projects
  */
-query projects(): list<name> {
-  return project @* { } ( .name );
+query projects(page_size: integer?, page_cursor: text?): paged_result {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val paginated_projects = project @* {
+    if (before_rowid??) (.rowid < before_rowid) else true
+  } (
+    pagination_result (
+      data = .name.to_gtv_pretty(),
+      rowid = .rowid
+    )
+  ) limit fetch_data_size(page_size);
+  return make_page(paginated_projects, page_size);
 }
 
 /**
@@ -89,8 +114,24 @@ query projects(): list<name> {
  * @param project of the collections to get
  * @return The list of all collections for the given project
  */
-query collections(project: name): list<name> {
-  return collection @* { .project.name == project } ( .name );
+query collections(project: name, page_size: integer?, page_cursor: text?): paged_result {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val paginated_collections = collection @* {
+    .project.name == project,
+    if (before_rowid??) (.rowid < before_rowid) else true
+  } (
+    pagination_result (
+      data = .name.to_gtv_pretty(),
+      rowid = .rowid
+    )
+  ) limit fetch_data_size(page_size);
+
+  return make_page(paginated_collections, page_size);
 }
 
 /**
