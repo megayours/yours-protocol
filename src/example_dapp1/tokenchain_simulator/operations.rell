@@ -38,12 +38,12 @@ operation emit_mint(
     );
   val mint_topic = _format_topic(chain, contract);
   log("emitting mint message on topic %s:".format(mint_topic), msg);
-  send_message(mint_topic, msg.to_gtv());
+  send_message(mint_topic, [integer(0).to_gtv(), msg.to_gtv()].to_gtv());
 
   val metadata_msg = yours.external.metadata_updated_message(chain, contract, token_id, metadata);
   val metadata_topic = _format_topic(chain, contract);
   log("emitting metadata message on topic %s:".format(metadata_topic), metadata_msg);
-  send_message(metadata_topic, metadata_msg.to_gtv());
+  send_message(metadata_topic, [integer(1).to_gtv(), metadata_msg.to_gtv()].to_gtv());
 }
 
 operation emit_transfer(chain: name, contract: byte_array, token_id: big_integer, from: byte_array, to: byte_array, amount: big_integer) {
@@ -54,7 +54,7 @@ operation emit_transfer(chain: name, contract: byte_array, token_id: big_integer
     .transfer_message(chain, contract, token_id, from, to, amount);
   val topic = _format_topic(chain, contract);
   log("emitting transfer message on topic %s:".format(topic), msg);
-  send_message(topic, msg.to_gtv());
+  send_message(topic, [integer(2).to_gtv(), msg.to_gtv()].to_gtv());
 }
 
 function _format_topic(chain: name, contract: byte_array) {
