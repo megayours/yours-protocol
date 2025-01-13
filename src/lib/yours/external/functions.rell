@@ -18,6 +18,7 @@ function _handle_message(sender: byte_array, topic: text, body: gtv) {
 
   when (type) {
     0 -> {
+      log("Received mint message on topic %s:".format(topic), data);
       val mint_msg = try_call(mint_message.from_gtv(data, *));
       if (mint_msg != null) {
         log("Handling mint message on topic %s:".format(topic), mint_msg);
@@ -27,6 +28,7 @@ function _handle_message(sender: byte_array, topic: text, body: gtv) {
       }
     }
     1 -> {
+      log("Received metadata updated message on topic %s:".format(topic), data);
       val metadata_updated_msg = try_call(metadata_updated_message.from_gtv(data, *));
       if (metadata_updated_msg != null) {
         log("Handling metadata updated message on topic %s:".format(topic), metadata_updated_msg);
@@ -36,6 +38,7 @@ function _handle_message(sender: byte_array, topic: text, body: gtv) {
       }
     }
     2 -> {
+      log("Received transfer message on topic %s:".format(topic), data);
       val transfer_msg = try_call(transfer_message.from_gtv(data, *));
       if (transfer_msg != null) {
         log("Handling transfer message on topic %s:".format(topic), transfer_msg);
