@@ -9,7 +9,9 @@ query get_token_balances(account_id: byte_array, page_size: integer?, page_curso
     .account.id == account_id,
     if (before_rowid??) (.rowid < before_rowid) else true
   } (
+    @omit @sort_desc $,
     pagination_result (
+      rowid = $.rowid,
       data = token_balance_dto(
       project = project_info(.token.collection.project.name, .token.collection.project.blockchain_rid),
       collection = .token.collection.name,
@@ -18,7 +20,6 @@ query get_token_balances(account_id: byte_array, page_size: integer?, page_curso
       type = .token.type.name,
       amount = .amount
       ).to_gtv_pretty(),
-      rowid = .rowid
     )
   ) limit fetch_data_size(page_size);
   return make_page(paginated_token_balances, page_size);
@@ -100,6 +101,7 @@ query projects(page_size: integer?, page_cursor: text?): paged_result {
   val paginated_projects = project @* {
     if (before_rowid??) (.rowid < before_rowid) else true
   } (
+    @omit @sort_desc $,
     pagination_result (
       data = .name.to_gtv_pretty(),
       rowid = .rowid
@@ -125,6 +127,7 @@ query collections(project: name, page_size: integer?, page_cursor: text?): paged
     .project.name == project,
     if (before_rowid??) (.rowid < before_rowid) else true
   } (
+    @omit @sort_desc $,
     pagination_result (
       data = .name.to_gtv_pretty(),
       rowid = .rowid
@@ -186,4 +189,18 @@ query get_transfer_history_from_height(height: integer, token_uid: byte_array?, 
 query get_transfer_history_entry(rowid) {
   val entry = transfer_history_entry @? { .rowid == rowid };
   return if (empty(entry)) null else extract_data_from_transfer_history_entry(entry);
+}
+
+query get_my_tokens_with_modules(account_id: byte_array, modules: list<name>) {
+  val tokens = set(
+    (tb: token_balance, tm: token_module) @* {
+      tb.account.id == account_id and
+    tb.token == tm.token and
+    tm.module_name in modules
+    } ( tb.token )
+  );
+  return tokens @* { } (
+    token_uid = $.uid,
+    metadata = populate_metadata ($, set(modules))
+  );
 }
