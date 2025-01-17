@@ -40,7 +40,7 @@ query metadata(
   collection: name,
   token_id: big_integer
 ): token_metadata_outgoing? {
-  val token = get_active_token(project_name, project_blockchain_rid, collection, token_id);
+  val token = get_token(project_name, project_blockchain_rid, collection, token_id);
   return if (token != null) get_metadata(token) else null;
 }
 

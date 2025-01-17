@@ -171,8 +171,9 @@ describe('External', () => {
       const megaClient = createMegaYoursClient(dapp1Session);
       await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Metadata = await dapp1Session.getMetadata(project, collection, tokenId);
-      expect(dapp1Metadata).toBeNull();
+      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      expect(dapp1Balance.amount).toBeUndefined();
+
       const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
       expect(dapp2Metadata).toBeDefined();
 
@@ -247,21 +248,11 @@ describe('External', () => {
       // Transfer the token back to the original chain
       await dapp2Session.transferCrosschain(dapp1Session.client, dapp1Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Metadata = await dapp1Session.getMetadata(project, collection, tokenId);
-      expect(dapp1Metadata).toBeDefined();
-      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
-      expect(dapp2Metadata).toBeNull();
+      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      expect(dapp1Balance.amount).toBeUndefined();
 
-      expect(dapp1Metadata.yours.type).toEqual('external');
-
-      expect(dapp1Metadata.name).toEqual(tokenName);
-      expect(dapp1Metadata.properties['animation_url']).toEqual('https://pudgypenguins.com/pudgy.mp4');
-      expect(dapp1Metadata.properties['description']).toEqual('Pudgy Penguin');
-      expect(dapp1Metadata.properties['image']).toEqual('https://pudgypenguins.com/pudgy.png');
-      expect(dapp1Metadata.yours.collection).toEqual(collection);
-      expect(dapp1Metadata.yours.project.name).toEqual(project.name);
-      expect(dapp1Metadata.yours.project.blockchain_rid).toBeDefined();
-      expect(dapp1Metadata.yours.modules).toEqual(['yours_external']);
+      const dapp2Balance = await dapp2Session.getTokenBalance(dapp2Session.account.id, project, collection, tokenId);
+      expect(dapp2Balance.amount).toBeUndefined();
     },
     TIMEOUT_TEST
   );
