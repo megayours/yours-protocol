@@ -77,6 +77,9 @@ function _handle_transfer(sender: byte_array, msg: transfer_message) {
   }
 
   require(token_data.token.collection.project.blockchain_rid == sender, "Sending chain isn't the owner of the token");
+
+  yours.log_transfer_history_entry(token_data.token, from, msg.amount, yours.transfer_type.external_sent);
+  yours.log_transfer_history_entry(token_data.token, to, msg.amount, yours.transfer_type.external_received);
 }
 
 function _handle_metadata_updated(sender: byte_array, msg: metadata_updated_message) {
@@ -108,6 +111,8 @@ function _handle_mint(sender: byte_array, msg: mint_message) {
   val account = _ensure_evm_account(msg.to);
 
   _attach(token, msg.chain, msg.contract, account, msg.amount);
+
+  yours.log_transfer_history_entry(token, account, msg.amount, yours.transfer_type.external_received);
 }
 
 function _parse_other_attributes(metadata: map<text, gtv>): map<text, gtv> {

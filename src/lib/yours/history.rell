@@ -1,6 +1,8 @@
 enum transfer_type {
   sent,
   received,
+  external_sent,
+  external_received
 }
 
 @log
