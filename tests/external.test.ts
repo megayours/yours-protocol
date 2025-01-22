@@ -175,6 +175,7 @@ describe('External', () => {
       expect(dapp1Balance.amount).toBeUndefined();
 
       const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
+      console.log('Metadata: ', dapp2Metadata);
       expect(dapp2Metadata).toBeDefined();
 
       expect(dapp2Metadata.yours.type).toEqual('external');
@@ -187,6 +188,161 @@ describe('External', () => {
       expect(dapp2Metadata.yours.project.name).toEqual(project.name);
       expect(dapp2Metadata.yours.project.blockchain_rid).toBeDefined();
       expect(dapp2Metadata.yours.modules).toEqual(['yours_external']);
+
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+    },
+    TIMEOUT_TEST
+  );
+
+  it(
+    'should normalize erc721 attributes for external tokens',
+    async () => {
+      const keyPair = encryption.makeKeyPair();
+      const evmAddress = evmAddressFromKeyPair(keyPair);
+
+      const dapp1Session = await createAccount(environment.dapp1Client, keyPair);
+      const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
+
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
+      const collection = randomCollectionName();
+      const tokenId = BigInt(3);
+      const tokenName = 'Pudgy Penguin #2';
+      const chain = 'Ethereum';
+      const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
+      const metadata = JSON.stringify({
+        name: tokenName,
+        description: 'Pudgy Penguin',
+        image: 'https://pudgypenguins.com/pudgy.png',
+        animation_url: 'https://pudgypenguins.com/pudgy.mp4',
+        attributes: [
+          {
+            trait_type: 'Background',
+            value: 'Blue',
+          },
+        ],
+      });
+
+      await dapp1Session
+        .transactionBuilder()
+        .add(
+          op(
+            'tokenchain_simulator.emit_mint',
+            project.name,
+            collection,
+            tokenId,
+            tokenName,
+            chain,
+            contract,
+            metadata,
+            evmAddress,
+            BigInt(1)
+          )
+        )
+        .buildAndSend();
+
+      const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
+      expect(ownerships.data.length).toEqual(1);
+      expect(ownerships.data[0].amount).toEqual(BigInt(1));
+
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      expect(ownerAccountIds.data.length).toEqual(1);
+      expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
+
+      const megaClient = createMegaYoursClient(dapp1Session);
+      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
+
+      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      expect(dapp1Balance.amount).toBeUndefined();
+
+      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
+      console.log('Metadata: ', dapp2Metadata);
+      expect(dapp2Metadata).toBeDefined();
+
+      expect(dapp2Metadata.yours.type).toEqual('external');
+
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+
+      expect(dapp2Metadata.properties['attributes']).toBeUndefined();
+      expect(dapp2Metadata.properties['Background']).toEqual('Blue');
+    },
+    TIMEOUT_TEST
+  );
+
+  it(
+    'should normalize erc1155 properties for external tokens',
+    async () => {
+      const keyPair = encryption.makeKeyPair();
+      const evmAddress = evmAddressFromKeyPair(keyPair);
+
+      const dapp1Session = await createAccount(environment.dapp1Client, keyPair);
+      const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
+
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
+      const collection = randomCollectionName();
+      const tokenId = BigInt(4);
+      const tokenName = 'Pudgy Penguin #2';
+      const chain = 'Ethereum';
+      const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');
+      const metadata = JSON.stringify({
+        name: tokenName,
+        description: 'Pudgy Penguin',
+        image: 'https://pudgypenguins.com/pudgy.png',
+        animation_url: 'https://pudgypenguins.com/pudgy.mp4',
+        properties: {
+          Background: 'Blue',
+          NestedObject: {
+            NestedKey: 'NestedValue',
+          },
+        },
+      });
+
+      await dapp1Session
+        .transactionBuilder()
+        .add(
+          op(
+            'tokenchain_simulator.emit_mint',
+            project.name,
+            collection,
+            tokenId,
+            tokenName,
+            chain,
+            contract,
+            metadata,
+            evmAddress,
+            BigInt(1)
+          )
+        )
+        .buildAndSend();
+
+      const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
+      expect(ownerships.data.length).toEqual(1);
+      expect(ownerships.data[0].amount).toEqual(BigInt(1));
+
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      expect(ownerAccountIds.data.length).toEqual(1);
+      expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
+
+      const megaClient = createMegaYoursClient(dapp1Session);
+      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
+
+      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      expect(dapp1Balance.amount).toBeUndefined();
+
+      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
+      console.log('Metadata: ', dapp2Metadata);
+      expect(dapp2Metadata).toBeDefined();
+
+      expect(dapp2Metadata.yours.type).toEqual('external');
+
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+
+      expect(dapp2Metadata.properties['attributes']).toBeUndefined();
+      expect(dapp2Metadata.properties['Background']).toEqual('Blue');
+      expect(dapp2Metadata.properties['NestedObject']).toEqual({ NestedKey: 'NestedValue' });
     },
     TIMEOUT_TEST
   );
@@ -202,7 +358,7 @@ describe('External', () => {
 
       const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
       const collection = randomCollectionName();
-      const tokenId = BigInt(3);
+      const tokenId = BigInt(5);
       const tokenName = 'Pudgy Penguin #2';
       const chain = 'Ethereum';
       const contract = Buffer.from('0x524cab2ec69124574082676e6f654a18df49a048'.replace('0x', ''), 'hex');

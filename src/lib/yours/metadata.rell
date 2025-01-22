@@ -85,6 +85,39 @@ function _import_attributes(token: token, inc_attributes: map<text, gtv>) {
     inc_attributes.remove("name");
   }
 
+  // Normalize ERC721 sub-attributes
+  val sub_attributes = inc_attributes.get_or_null("attributes");
+  if (sub_attributes != null) {
+    val array_attributes = try_call(list<gtv>.from_gtv(sub_attributes, *));
+    if (array_attributes != null) {
+      for (attribute in array_attributes) {
+        val t_attribute = try_call(map<text, gtv>.from_gtv(attribute, *));
+        if (t_attribute != null) {
+          val nkey = t_attribute.get_or_null("trait_type");
+          val nvalue = t_attribute.get_or_null("value");
+          if (nkey != null and nvalue != null) {
+            inc_attributes.put(text.from_gtv(nkey), nvalue);
+          }
+        }
+      }
+    }
+
+    inc_attributes.remove("attributes");
+  }
+
+  // Normalize ERC1155 sub-attributes
+  val sub_properties = inc_attributes.get_or_null("properties");
+  if (sub_properties != null) {
+    val map_properties = try_call(map<text, gtv>.from_gtv(sub_properties, *));
+    if (map_properties != null) {
+      for ((mkey, value) in map_properties) {
+        inc_attributes.put(mkey, value);
+      }
+    }
+
+    inc_attributes.remove("properties");
+  }
+
   val attributes = inc_attributes.to_gtv().to_json();
 
   val imported_attributes = imported_attributes @? { token };
