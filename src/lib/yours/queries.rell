@@ -1,3 +1,46 @@
+/**
+ * Returns the token for the given project, collection, and token id.
+ *
+ * @param project_name the project name
+ * @param project_blockchain_rid the project blockchain rid
+ * @param collection the collection name
+ * @param token_id the token id
+ * @return The token info for the given project, collection, and token id
+ */
+query get_token_info(project_name: name, project_blockchain_rid: byte_array, collection: name, token_id: big_integer): token_dto? {
+  val token = get_token(project_name, project_blockchain_rid, collection, token_id);
+  return if (token != null) token_dto(
+    project = project_info(token.collection.project.name, token.collection.project.blockchain_rid),
+    collection = token.collection.name,
+    token_id = token.id,
+    uid = token.uid,
+    type = token.type
+  ) else null;
+}
+
+/**
+ * Returns the token for the given uid.
+ *
+ * @param uid the uid
+ * @return The token info for the given uid
+ */
+query get_token_info_by_uid(uid: byte_array): token_dto? {
+  val token = get_active_token_by_uid(uid);
+  return if (token != null) token_dto(
+    project = project_info(token.collection.project.name, token.collection.project.blockchain_rid),
+    collection = token.collection.name,
+    token_id = token.id,
+    uid = token.uid,
+    type = token.type
+  ) else null;
+}
+
+/**
+ * Returns the list of all tokens for the given account.
+ *
+ * @param account_id the account id
+ * @return The list of all tokens for the given account
+ */
 query get_token_balances(account_id: byte_array, page_size: integer?, page_cursor: text?): paged_result {
   var before_rowid: rowid? = null;
   if (page_cursor??) {
@@ -189,18 +232,4 @@ query get_transfer_history_from_height(height: integer, token_uid: byte_array?, 
 query get_transfer_history_entry(rowid) {
   val entry = transfer_history_entry @? { .rowid == rowid };
   return if (empty(entry)) null else extract_data_from_transfer_history_entry(entry);
-}
-
-query get_my_tokens_with_modules(account_id: byte_array, modules: list<name>) {
-  val tokens = set(
-    (tb: token_balance, tm: token_module) @* {
-      tb.account.id == account_id and
-    tb.token == tm.token and
-    tm.module_name in modules
-    } ( tb.token )
-  );
-  return tokens @* { } (
-    token_uid = $.uid,
-    metadata = populate_metadata ($, set(modules))
-  );
 }

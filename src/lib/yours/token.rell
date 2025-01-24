@@ -10,6 +10,14 @@ struct token_info {
   modules: list<name>?;
 }
 
+struct token_dto {
+  project: project_info;
+  collection: name;
+  token_id: big_integer;
+  uid: byte_array;
+  type: token_type;
+}
+
 /**
  * The specification for a project.
  */
