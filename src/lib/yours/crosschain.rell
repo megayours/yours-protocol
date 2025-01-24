@@ -22,14 +22,23 @@ operation init_transfer(
   metadata: token_metadata_incoming
 ) {
   val account = ft4.auth.authenticate();
-
   val project_info = metadata.yours.project;
   require(project @? { .name == project_info.name, .blockchain_rid == project_info.blockchain_rid } != null, "Invalid project");
 
   val collection = metadata.yours.collection;
 
   val token = require(get_token(project_info.name, project_info.blockchain_rid, collection, token_id), "Token Not Found");
+  _init_transfer(target_blockchain_rid, recipient_id, token, amount, metadata, account);
+}
 
+function _init_transfer(
+  target_blockchain_rid: byte_array,
+  recipient_id: byte_array,
+  token,
+  amount: big_integer,
+  metadata: token_metadata_incoming,
+  account: ft4.accounts.account
+) {
   val balance = get_balance(token, account);
   require(balance >= amount, "Insufficient balance %s/%s".format(balance, amount));
 
