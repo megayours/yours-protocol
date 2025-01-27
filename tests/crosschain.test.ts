@@ -1,12 +1,13 @@
 import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
-import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
+import { ADMIN_SIGNATURE_PROVIDER, TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
 import { createAccount } from './utils/ft4';
-import { createProjectMetadata, createTokenMetadata } from './utils/metadata';
+import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { randomCollectionName } from './utils/random';
 import { encryption } from 'postchain-client';
 import { performCrossChainTransfer, serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
 import { CrosschainTestParams } from './utils/types';
-import { testCrossChainTransfer } from './utils/crosschain';
+import { performOracleCrossChainTransfer, testCrossChainTransfer } from './utils/crosschain';
+import { op } from '@chromia/ft4';
 
 describe('Crosschain', () => {
   let environment: TestEnvironment;
@@ -316,6 +317,60 @@ describe('Crosschain', () => {
       expect(targetChainHistory.data[0].token.collection).toBe(collection);
       expect(targetChainHistory.data[0].token.id).toBe(BigInt(0));
       expect(targetChainHistory.data[0].token.name).toBe(tokenMetadata.name);
+    },
+    TIMEOUT_TEST
+  );
+
+  it(
+    'oracle cannot crosschain transfer yours tokens',
+    async () => {
+      // Arrange
+      const keyPair = encryption.makeKeyPair();
+      const dapp1Session = await createAccount(environment.dapp1Client, keyPair);
+      const dapp2Session = await createAccount(environment.dapp2Client, keyPair);
+
+      const collection = randomCollectionName();
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
+      const tokenMetadata = createTokenMetadata(project, collection);
+      const tokenId = BigInt(0);
+
+      const erc1155Properties = createErc1155Properties();
+      await dapp1Session
+        .transactionBuilder()
+        .add(
+          op(
+            'importer.nft',
+            project.name,
+            collection,
+            tokenMetadata.name,
+            tokenId,
+            JSON.stringify(tokenMetadata.properties),
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
+        )
+        .buildAndSend();
+
+      const metadata: TokenMetadata = await dapp1Session.query<TokenMetadata>('yours.metadata', {
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
+        collection: collection,
+        token_id: tokenId,
+      });
+
+      // Act
+      await expect(
+        performOracleCrossChainTransfer(
+          environment.dapp1Client,
+          environment.dapp2Client,
+          ADMIN_SIGNATURE_PROVIDER,
+          dapp1Session.account.id,
+          dapp2Session.account.id,
+          tokenId,
+          BigInt(1),
+          metadata
+        )
+      ).rejects.toThrow();
     },
     TIMEOUT_TEST
   );

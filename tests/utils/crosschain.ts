@@ -1,6 +1,6 @@
-import { Session, transactionBuilder } from '@chromia/ft4';
+import { getTransactionRid, Session, transactionBuilder } from '@chromia/ft4';
 import { noopAuthenticator, op } from '@chromia/ft4';
-import { IClient } from 'postchain-client';
+import { gtv, RawGtx, IClient, SignatureProvider, createIccfProofTx, createClient } from 'postchain-client';
 import { createErc1155Properties } from './metadata';
 import { CrosschainTestParams } from './types';
 import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
@@ -155,4 +155,84 @@ export async function performCrossChainTransfer(
         reject(error);
       });
   });
+}
+
+export async function performOracleCrossChainTransfer(
+  fromChain: IClient,
+  toChain: IClient,
+  oracleSignatureProvider: SignatureProvider,
+  fromAccountId: Buffer,
+  toAccountId: Buffer,
+  tokenId: bigint,
+  amount: bigint,
+  metadata: TokenMetadata
+): Promise<void> {
+  // Create management chain client
+  const nodeUrl = fromChain.config.endpointPool[0].url;
+  const managementChain = await createClient({
+    directoryNodeUrlPool: [nodeUrl],
+    blockchainIid: 0,
+  });
+
+  // Init Transfer on Source Chain
+  const initTx = {
+    operations: [
+      op(
+        'yours.init_oracle_transfer',
+        fromAccountId,
+        Buffer.from(toChain.config.blockchainRid, 'hex'),
+        toAccountId,
+        tokenId,
+        amount,
+        serializeTokenMetadata(metadata)
+      ),
+    ],
+    signers: [oracleSignatureProvider.pubKey],
+  };
+
+  const signedInitTx = await fromChain.signTransaction(initTx, oracleSignatureProvider);
+  await fromChain.sendTransaction(signedInitTx);
+
+  const rawInitTx = gtv.decode(signedInitTx) as RawGtx;
+  const initTxRid = getTransactionRid(rawInitTx);
+  const initTxIccfProof = await createIccfProofTx(
+    managementChain,
+    initTxRid,
+    gtv.gtvHash(rawInitTx),
+    [oracleSignatureProvider.pubKey],
+    fromChain.config.blockchainRid,
+    toChain.config.blockchainRid,
+    undefined,
+    true
+  );
+
+  // Apply Transfer on Destination Chain
+  const applyTx = {
+    operations: [initTxIccfProof.iccfTx.operations[0], op('yours.apply_transfer', rawInitTx, 0)],
+    signers: [oracleSignatureProvider.pubKey],
+  };
+
+  const signedApplyTx = await toChain.signTransaction(applyTx, oracleSignatureProvider);
+  await toChain.sendTransaction(signedApplyTx);
+
+  const rawApplyTx = gtv.decode(signedApplyTx) as RawGtx;
+  const applyTxRid = getTransactionRid(rawApplyTx);
+  const applyTxIccfProof = await createIccfProofTx(
+    managementChain,
+    applyTxRid,
+    gtv.gtvHash(rawApplyTx),
+    [oracleSignatureProvider.pubKey],
+    toChain.config.blockchainRid,
+    fromChain.config.blockchainRid,
+    undefined,
+    true
+  );
+
+  // Complete Transfer on Source Chain
+  const completeTx = {
+    operations: [applyTxIccfProof.iccfTx.operations[0], op('yours.complete_transfer', rawApplyTx, 1)],
+    signers: [oracleSignatureProvider.pubKey],
+  };
+
+  await fromChain.signAndSendUniqueTransaction(completeTx, oracleSignatureProvider);
 }

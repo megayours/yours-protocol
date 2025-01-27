@@ -21,6 +21,8 @@ blockchains:
         maxblocktime: 1000
       <<: *sender
     moduleArgs:
+      example_dapp1.tokenchain_simulator:
+        oracle_pubkey: 03af5096bc0f9e0c948121e7bf94a5ccd964a11b596280b151851f02de38d6ba02
       lib.ft4.core.accounts:
         rate_limit:
           active: false

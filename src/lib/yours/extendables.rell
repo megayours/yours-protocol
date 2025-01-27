@@ -95,3 +95,11 @@ function before_mint(token, ft4.accounts.account, amount: big_integer) {}
  */
 @extendable
 function after_mint(token, ft4.accounts.account, amount: big_integer) {}
+
+/**
+ * Allows a dapp to authorize an oracle transfer.
+ * 
+ * This function should return true if a transfer is authorized, e.g. has been signed by an oracle.
+ */
+@extendable
+function authorized_oracle_transfer(): boolean;

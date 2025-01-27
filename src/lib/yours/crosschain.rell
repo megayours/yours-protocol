@@ -22,13 +22,32 @@ operation init_transfer(
   metadata: token_metadata_incoming
 ) {
   val account = ft4.auth.authenticate();
+  val token = require(_get_init_transfer_token(token_id, metadata), "Token Not Found");
+  _init_transfer(target_blockchain_rid, recipient_id, token, amount, metadata, account);
+}
+
+operation init_oracle_transfer(
+  account_id: byte_array,
+  target_blockchain_rid: byte_array,
+  recipient_id: byte_array,
+  token_id: big_integer,
+  amount: big_integer,
+  metadata: token_metadata_incoming
+) {
+  require(authorized_oracle_transfer(), "Oracle transfer not authorized");
+  val account = ft4.accounts.account @ { account_id };
+  val token = require(_get_init_transfer_token(token_id, metadata), "Token Not Found");
+  require(token.type == token_type.external, "Only external tokens can be transferred crosschain via an oracle");
+  _init_transfer(target_blockchain_rid, recipient_id, token, amount, metadata, account);
+}
+
+function _get_init_transfer_token(token_id: big_integer, metadata: token_metadata_incoming) {
   val project_info = metadata.yours.project;
   require(project @? { .name == project_info.name, .blockchain_rid == project_info.blockchain_rid } != null, "Invalid project");
 
   val collection = metadata.yours.collection;
 
-  val token = require(get_token(project_info.name, project_info.blockchain_rid, collection, token_id), "Token Not Found");
-  _init_transfer(target_blockchain_rid, recipient_id, token, amount, metadata, account);
+  return get_token(project_info.name, project_info.blockchain_rid, collection, token_id);
 }
 
 function _init_transfer(
@@ -85,30 +104,31 @@ operation apply_transfer(
   init_transfer_tx: gtx_transaction,
   init_tx_op_index: integer
 ) {
-  val (init_transfer_details, crosschain_source_blockchain_rid) = _validate_apply_transfer(
+  val details = _validate_apply_transfer(
     init_transfer_tx,
     init_tx_op_index
   );
 
-  require(init_transfer_details.args.target_blockchain_rid == chain_context.blockchain_rid, "Invalid target blockchain");
+  require(details.target_blockchain_rid == chain_context.blockchain_rid, "Invalid target blockchain");
 
   // Add transfer to applied transfers table so that it cannot be applied more than once
   create applied_transfers (
-    init_tx_rid = init_transfer_details.tx_rid,
+    init_tx_rid = details.tx_rid,
     init_op_index = init_tx_op_index,
     transaction = op_context.transaction,
     op_index = op_context.op_index
   );
 
-  val transferred_metadata = init_transfer_details.args.metadata;
+  val transferred_metadata = details.metadata;
   var token = get_token(
     transferred_metadata.yours.project.name,
     transferred_metadata.yours.project.blockchain_rid,
     transferred_metadata.yours.collection,
-    init_transfer_details.args.token_id
+    details.token_id
   );
 
   val inc_token_type = token_type.value(transferred_metadata.yours.type);
+  require(not details.oracle_transfer or inc_token_type == token_type.external, "Only external tokens can be transferred crosschain via an oracle");
 
   if (token == null) {
     require(inc_token_type == token_type.yours, "Only a yours token may be created during a crosschain transfer");
@@ -120,17 +140,17 @@ operation apply_transfer(
         name = transferred_metadata.name,
         modules = transferred_metadata.yours.modules
       ),
-      init_transfer_details.args.token_id
+      details.token_id
     );
   } else {
     token.type = inc_token_type;
   }
 
   _apply_transfer(
-    init_transfer_details.args.recipient_id,
+    details.recipient_id,
     token,
-    init_transfer_details.args.amount,
-    crosschain_source_blockchain_rid,
+    details.amount,
+    details.source_blockchain_rid,
     transferred_metadata
   );
 
@@ -195,31 +215,43 @@ function _apply_common_metadata(token, metadata: token_metadata_incoming) {
   attach_modules(token, metadata.yours.modules);
 }
 
+struct init_transfer_details {
+  oracle_transfer: boolean;
+  tx_rid: byte_array;
+  source_blockchain_rid: byte_array;
+  target_blockchain_rid: byte_array;
+  sender_account_id: byte_array;
+  recipient_id: byte_array;
+  token_id: big_integer;
+  amount: big_integer;
+  metadata: token_metadata_incoming;
+}
+
 function _validate_apply_transfer(
   init_transfer_tx: gtx_transaction,
   init_tx_op_index: integer
 ) {
-  val init_transfer_details = _get_init_transfer_details(init_transfer_tx, init_tx_op_index);
+  val details = require(_get_init_transfer_details(init_transfer_tx, init_tx_op_index), "Invalid init_transfer operation");
 
   require(
     applied_transfers @? {
-      .init_tx_rid == init_transfer_details.tx_rid,
+      .init_tx_rid == details.tx_rid,
       .init_op_index == init_tx_op_index
     } == null,
     "Transaction <%s> transfer at index <%s> has already been applied on this chain."
-      .format(init_transfer_details.tx_rid, init_tx_op_index)
+      .format(details.tx_rid, init_tx_op_index)
   );
 
   require(
-    canceled_transfers @? { init_transfer_details.tx_rid, init_tx_op_index } == null,
+    canceled_transfers @? { .init_tx_rid == details.tx_rid, init_tx_op_index } == null,
     "Transaction <%s> transfer at index <%s> has already been canceled on this chain."
-      .format(init_transfer_details.tx_rid, init_tx_op_index)
+      .format(details.tx_rid, init_tx_op_index)
   );
 
   require(
-    unapplied_transfers @? { init_transfer_details.tx_rid, init_tx_op_index } == null,
+    unapplied_transfers @? { .init_tx_rid == details.tx_rid, init_tx_op_index } == null,
     "Transaction <%s> transfer at index <%s> has already been unapplied on this chain."
-      .format(init_transfer_details.tx_rid, init_tx_op_index)
+      .format(details.tx_rid, init_tx_op_index)
   );
 
   iccf.require_valid_proof(
@@ -228,29 +260,40 @@ function _validate_apply_transfer(
     verify_signers = false
   );
 
-  return (init_transfer_details, init_transfer_tx.body.blockchain_rid);
+  return details;
 }
 
 function _get_init_transfer_details(tx: gtx_transaction, op_index: integer) {
   val op = tx.body.operations[op_index];
 
-  require(
-    op.name == rell.meta(init_transfer).mount_name,
-    "Invalid parameters. Expected <%s> at index <%d>, found <%s>"
-      .format(rell.meta(init_transfer).mount_name, op_index, op.name)
-  );
-
   val tx_rid = tx.body.hash();
-  val args = struct<init_transfer>.from_gtv(op.args.to_gtv());
 
-  val auth_op = tx.body.operations[op_index - 1];
-  val sender_account_id = ft4.auth.extract_account_id(auth_op);
+  if (op.name == rell.meta(init_transfer).mount_name) {
+    val args = struct<init_transfer>.from_gtv(op.args.to_gtv());
+    val auth_op = tx.body.operations[op_index - 1];
+    val target_blockchain_rid = args.target_blockchain_rid;
+    val source_blockchain_rid = tx.body.blockchain_rid;
+    val sender_account_id = ft4.auth.extract_account_id(auth_op);
+    val recipient_id = args.recipient_id;
+    val token_id = args.token_id;
+    val amount = args.amount;
+    val metadata = args.metadata;
 
-  return (
-    tx_rid = tx_rid,
-    args = args,
-    sender_account_id = sender_account_id
-  );
+    return init_transfer_details(false, tx_rid, source_blockchain_rid, target_blockchain_rid, sender_account_id, recipient_id, token_id, amount, metadata);
+  } else if (op.name == rell.meta(init_oracle_transfer).mount_name) {
+    val args = struct<init_oracle_transfer>.from_gtv(op.args.to_gtv());
+    val target_blockchain_rid = args.target_blockchain_rid;
+    val source_blockchain_rid = tx.body.blockchain_rid;
+    val sender_account_id = args.account_id;
+    val recipient_id = args.recipient_id;
+    val token_id = args.token_id;
+    val amount = args.amount;
+    val metadata = args.metadata;
+
+    return init_transfer_details(true, tx_rid, source_blockchain_rid, target_blockchain_rid, sender_account_id, recipient_id, token_id, amount, metadata);
+  } else {
+    return null;
+  }
 }
 
 function _ensure_visited_blockchains(token, blockchains: list<byte_array>) {
