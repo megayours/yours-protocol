@@ -71,7 +71,8 @@ query all_tokens(page_size: integer?, page_cursor: text?): yours.paged_result {
       token_id = .token.id,
       uid = .token.uid,
       type = .token.type.name,
-        amount = .amount
+      amount = .amount,
+      account_id = .owner.id
       ).to_gtv_pretty(),
       rowid = .rowid
   )
@@ -97,7 +98,8 @@ query get_tokens(account_id: byte_array, page_size: integer?, page_cursor: text?
       token_id = .token.id,
       uid = .token.uid,
       type = .token.type.name,
-        amount = .amount
+      amount = .amount,
+      account_id = .owner.id
       ).to_gtv_pretty(),
       rowid = .rowid
   )

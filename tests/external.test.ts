@@ -159,7 +159,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
+      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -241,7 +241,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
+      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -317,7 +317,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
+      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -388,7 +388,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
+      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -455,7 +455,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances(dapp1Session.account.id);
+      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
