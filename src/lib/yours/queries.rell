@@ -209,6 +209,25 @@ query get_transfer_history(account_id: byte_array, type: transfer_type?, page_si
  * @param token_uid the token uid
  * @return The list of transfers for the given token
  */
+query get_all_transfer_history(page_size: integer?, page_cursor: text?) {
+  val paginated_transfers = get_paginated_transfers(
+    account = null,
+    token = null,
+    type = null,
+    height = null,
+    page_size = page_size,
+    page_cursor = page_cursor
+  );
+  return make_page(paginated_transfers, page_size);
+}
+
+/**
+ * Returns the list of transfers for the given token.
+ *
+ * @param height the height
+ * @param token_uid the token uid
+ * @return The list of transfers for the given token
+ */
 query get_transfer_history_from_height(height: integer, token_uid: byte_array?, page_size: integer?, page_cursor: text?) {
   val token = if (token_uid != null) get_token_by_uid(token_uid) else null;
 

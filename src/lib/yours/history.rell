@@ -78,6 +78,7 @@ function extract_data_from_transfer_history_list(
 function extract_data_from_transfer_history_entry(entry: transfer_history_entry) {
   return (
     id = entry.rowid,
+    account_id = entry.account.id,
     amount = entry.amount,
     decimals = entry.token.decimals,
     token = map_token(entry.token),
