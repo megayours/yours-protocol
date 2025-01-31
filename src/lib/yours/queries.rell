@@ -13,7 +13,7 @@ query get_token_info(project_name: name, project_blockchain_rid: byte_array, col
   return if (token != null) token_dto(
     project = project_info(token.collection.project.name, token.collection.project.blockchain_rid),
     collection = token.collection.name,
-    token_id = token.id,
+    id = token.id,
     uid = token.uid,
     type = token.type
   ) else null;
@@ -30,7 +30,7 @@ query get_token_info_by_uid(uid: byte_array): token_dto? {
   return if (token != null) token_dto(
     project = project_info(token.collection.project.name, token.collection.project.blockchain_rid),
     collection = token.collection.name,
-    token_id = token.id,
+    id = token.id,
     uid = token.uid,
     type = token.type
   ) else null;
