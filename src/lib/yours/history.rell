@@ -43,7 +43,17 @@ function log_crosschain_transfer_history_entry(
   );
 }
 
-function get_paginated_transfers(ft4.accounts.account?, token?, type: transfer_type?, height: integer?, page_size: integer?, page_cursor: text?) {
+function get_paginated_transfers(
+  account_id: byte_array?,
+  project_blockchain_rid: byte_array?,
+  project_name: name?,
+  collection: name?,
+  token_uid: byte_array?,
+  type: transfer_type?,
+  height: integer?,
+  page_size: integer?,
+  page_cursor: text?
+) {
   var before_rowid: rowid? = null;
   if (page_cursor??) {
     val cursor = decode_cursor(page_cursor);
@@ -51,8 +61,11 @@ function get_paginated_transfers(ft4.accounts.account?, token?, type: transfer_t
   }
 
   val entries = transfer_history_entry @* {
-    if (account == null) true else .account == account,
-    if (token == null) true else .token == token,
+    if (account_id == null) true else .account.id == account_id,
+    if (project_blockchain_rid == null) true else .token.collection.project.blockchain_rid == project_blockchain_rid,
+    if (project_name == null) true else .token.collection.project.name == project_name,
+    if (collection == null) true else .token.collection.name == collection,
+    if (token_uid == null) true else .token.uid == token_uid,
     if (type == null) true else .type == type,
     if (height == null) true else (.transaction.block.block_height > height),
     if (before_rowid??) (.rowid < before_rowid) else true

@@ -481,7 +481,7 @@ describe('External', () => {
       );
 
       // Verify
-      const sourceChainHistory = await dapp1Session.getTransferHistoryByAccount(dapp1Session.account.id, null, 1, null);
+      const sourceChainHistory = await dapp1Session.getTransferHistory({ accountId: dapp1Session.account.id }, 1, null);
       expect(sourceChainHistory.data.length).toBe(1);
       expect(sourceChainHistory.data[0].amount).toBe(BigInt(1));
       expect(sourceChainHistory.data[0].blockchain_rid).toEqual(dapp2Session.blockchainRid);
@@ -496,7 +496,7 @@ describe('External', () => {
       expect(sourceChainHistory.data[0].token.id).toBe(tokenId);
       expect(sourceChainHistory.data[0].token.name).toBe(metadata.name);
 
-      const targetChainHistory = await dapp2Session.getTransferHistoryByAccount(dapp2Session.account.id, null, 1, null);
+      const targetChainHistory = await dapp2Session.getTransferHistory({ accountId: dapp2Session.account.id }, 1, null);
       expect(targetChainHistory.data.length).toBe(1);
       expect(targetChainHistory.data[0].amount).toBe(BigInt(1));
       expect(targetChainHistory.data[0].blockchain_rid).toEqual(dapp1Session.blockchainRid);

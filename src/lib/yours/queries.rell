@@ -1,3 +1,4 @@
+
 /**
  * Returns the token for the given project, collection, and token id.
  *
@@ -39,6 +40,11 @@ query get_token_info_by_uid(uid: byte_array): token_dto? {
  * Returns the list of all tokens for the given account.
  *
  * @param account_id the account id
+ * @param project_blockchain_rid the project blockchain rid
+ * @param project_name the project name
+ * @param collection the collection name
+ * @param page_size the page size
+ * @param page_cursor the page cursor
  * @return The list of all tokens for the given account
  */
 query get_token_balances(account_id: byte_array?, project_blockchain_rid: byte_array?, project_name: name?, collection: name?, page_size: integer?, page_cursor: text?): paged_result {
@@ -169,16 +175,29 @@ query collections(project: name, page_size: integer?, page_cursor: text?): paged
  * Returns the list of transfers for the given account.
  *
  * @param account_id the account id
+ * @param project_blockchain_rid the project blockchain rid
+ * @param project_name the project name
+ * @param collection the collection name
+ * @param token_uid the token uid
  * @param type the transfer type
  * @return The list of transfers for the given account
  */
-query get_transfer_history(account_id: byte_array, type: transfer_type?, page_size: integer?, page_cursor: text?) {
-  val account = ft4.accounts.account @? { account_id };
-  if (empty(account)) return null;
-
+query get_transfer_history(
+  account_id: byte_array?,
+  project_blockchain_rid: byte_array?,
+  project_name: name?,
+  collection: name?,
+  token_uid: byte_array?,
+  type: transfer_type?,
+  page_size: integer?,
+  page_cursor: text?
+) {
   val paginated_transfers = get_paginated_transfers(
-    account = account,
-    token = null,
+    account_id = account_id,
+    project_blockchain_rid = project_blockchain_rid,
+    project_name = project_name,
+    collection = collection,
+    token_uid = token_uid,
     type = type,
     height = null,
     page_size = page_size,
@@ -190,14 +209,16 @@ query get_transfer_history(account_id: byte_array, type: transfer_type?, page_si
 /**
  * Returns the list of transfers for the given token.
  *
- * @param height the height
- * @param token_uid the token uid
+ * @param type the transfer type
  * @return The list of transfers for the given token
  */
 query get_all_transfer_history(type: transfer_type?, page_size: integer?, page_cursor: text?) {
   val paginated_transfers = get_paginated_transfers(
-    account = null,
-    token = null,
+    account_id = null,
+    project_blockchain_rid = null,
+    project_name = null,
+    collection = null,
+    token_uid = null,
     type = type,
     height = null,
     page_size = page_size,
@@ -214,11 +235,12 @@ query get_all_transfer_history(type: transfer_type?, page_size: integer?, page_c
  * @return The list of transfers for the given token
  */
 query get_transfer_history_from_height(height: integer, token_uid: byte_array?, page_size: integer?, page_cursor: text?) {
-  val token = if (token_uid != null) get_token_by_uid(token_uid) else null;
-
   val paginated_transfers = get_paginated_transfers(
-    account = null,
-    token = token,
+    account_id = null,
+    project_blockchain_rid = null,
+    project_name = null,
+    collection = null,
+    token_uid = token_uid,
     type = null,
     height = height,
     page_size = page_size,
