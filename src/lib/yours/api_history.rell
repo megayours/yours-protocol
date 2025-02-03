@@ -1,0 +1,46 @@
+/**
+ * Returns the list of transfers for the given account.
+ *
+ * @param account_id the account id
+ * @param project_blockchain_rid the project blockchain rid
+ * @param project_name the project name
+ * @param collection the collection name
+ * @param token_uid the token uid
+ * @param type the transfer type
+ * @return The list of transfers for the given account
+ */
+query get_transfer_history(
+  account_id: byte_array?,
+  project_blockchain_rid: byte_array?,
+  project_name: name?,
+  collection: name?,
+  token_uid: byte_array?,
+  type: transfer_type?,
+  from_height: integer?,
+  page_size: integer?,
+  page_cursor: text?
+) {
+  val paginated_transfers = get_paginated_transfers(
+    account_id = account_id,
+    project_blockchain_rid = project_blockchain_rid,
+    project_name = project_name,
+    collection = collection,
+    token_uid = token_uid,
+    type = type,
+    height = from_height,
+    page_size = page_size,
+    page_cursor = page_cursor
+  );
+  return make_page(paginated_transfers, page_size);
+}
+
+/**
+ * Returns the transfer history entry for the given rowid.
+ *
+ * @param rowid the rowid
+ * @return The transfer history entry for the given rowid
+ */
+query get_transfer_history_entry(rowid) {
+  val entry = transfer_history_entry @? { .rowid == rowid };
+  return if (empty(entry)) null else extract_data_from_transfer_history_entry(entry);
+}

@@ -184,7 +184,7 @@ describe('Non-Fungible Token', () => {
         )
         .buildAndSend();
 
-      const history = await session.getTransferHistory({ accountId: session.account.id }, 1, null);
+      const history = await session.getTransferHistory({ account_id: session.account.id }, 1, null);
 
       expect(history.data.length).toBe(1);
       expect(history.data[0].amount).toBe(BigInt(1));
@@ -239,7 +239,7 @@ describe('Non-Fungible Token', () => {
         .add(op('mkpl.transfer', project.name, project.blockchain_rid, collection, tokenId, BigInt(1), session2.account.id))
         .buildAndSend();
 
-      const historySender = await session.getTransferHistory({ accountId: session.account.id }, 1, null);
+      const historySender = await session.getTransferHistory({ account_id: session.account.id }, 1, null);
 
       expect(historySender.data.length).toBe(1);
       expect(historySender.data[0].amount).toBe(BigInt(1));
@@ -262,7 +262,7 @@ describe('Non-Fungible Token', () => {
       const nextPage2 = await nextPage.fetchNext();
       expect(nextPage2.data.length).toBe(0);
 
-      const historyReceiver = await session.getTransferHistory({ accountId: session2.account.id }, 1, null);
+      const historyReceiver = await session.getTransferHistory({ account_id: session2.account.id }, 1, null);
 
       expect(historyReceiver.data.length).toBe(1);
       expect(historyReceiver.data[0].amount).toBe(BigInt(1));

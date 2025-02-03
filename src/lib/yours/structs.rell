@@ -27,3 +27,9 @@ struct paged_result {
   next_cursor: text?;
   data: list<gtv>;
 }
+
+struct module_info {
+  name;
+  version: integer;
+  description: text;
+}

@@ -47,3 +47,14 @@ function before_init_transfer(yours.token, ft4.accounts.account) {
     "Cannot transfer an equipped item"
   );
 }
+
+@extend(yours.module_metadata)
+function module_metadata(): list<yours.module_info> {
+  return [
+    yours.module_info(
+      name = "avatars",
+      version = 1,
+      description = "Avatars module"
+    )
+  ];
+}

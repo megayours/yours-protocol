@@ -103,3 +103,13 @@ function after_mint(token, ft4.accounts.account, amount: big_integer) {}
  */
 @extendable
 function authorized_oracle_transfer(): boolean;
+
+/**
+ * Allows a module to provide information about itself.
+ * 
+ * A module is expected to return a list of one entry containing the module name and version.
+ * 
+ * @return A list of module information
+ */
+@extendable
+function module_metadata(): list<module_info>;

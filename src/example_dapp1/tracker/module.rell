@@ -31,3 +31,14 @@ function after_apply_transfer(yours.token, modules: set<name>, attributes: map<t
     update tracker ( last_block_time = op_context.last_block_time );
   }
 }
+
+@extend(yours.module_metadata)
+function module_metadata(): list<yours.module_info> {
+  return [
+    yours.module_info(
+      name = "tracker",
+      version = 3,
+      description = "Tracker module"
+    )
+  ];
+}

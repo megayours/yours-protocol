@@ -159,7 +159,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
+      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -241,7 +241,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
+      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -317,7 +317,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
+      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -388,7 +388,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
+      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -455,7 +455,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ accountId: dapp1Session.account.id });
+      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -481,7 +481,7 @@ describe('External', () => {
       );
 
       // Verify
-      const sourceChainHistory = await dapp1Session.getTransferHistory({ accountId: dapp1Session.account.id }, 1, null);
+      const sourceChainHistory = await dapp1Session.getTransferHistory({ account_id: dapp1Session.account.id }, 1, null);
       expect(sourceChainHistory.data.length).toBe(1);
       expect(sourceChainHistory.data[0].amount).toBe(BigInt(1));
       expect(sourceChainHistory.data[0].blockchain_rid).toEqual(dapp2Session.blockchainRid);
@@ -496,7 +496,7 @@ describe('External', () => {
       expect(sourceChainHistory.data[0].token.id).toBe(tokenId);
       expect(sourceChainHistory.data[0].token.name).toBe(metadata.name);
 
-      const targetChainHistory = await dapp2Session.getTransferHistory({ accountId: dapp2Session.account.id }, 1, null);
+      const targetChainHistory = await dapp2Session.getTransferHistory({ account_id: dapp2Session.account.id }, 1, null);
       expect(targetChainHistory.data.length).toBe(1);
       expect(targetChainHistory.data[0].amount).toBe(BigInt(1));
       expect(targetChainHistory.data[0].blockchain_rid).toEqual(dapp1Session.blockchainRid);
