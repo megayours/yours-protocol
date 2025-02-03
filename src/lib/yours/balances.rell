@@ -3,6 +3,7 @@ function get_paginated_balances(
   project_blockchain_rid: byte_array?,
   project_name: name?,
   collection: name?,
+  token_id: big_integer?,
   page_size: integer?,
   page_cursor: text?
 ) {
@@ -17,6 +18,7 @@ function get_paginated_balances(
     if (project_blockchain_rid == null) true else .token.collection.project.blockchain_rid == project_blockchain_rid,
     if (project_name == null) true else .token.collection.project.name == project_name,
     if (collection == null) true else .token.collection.name == collection,
+    if (token_id == null) true else .token.id == token_id,
     if (before_rowid??) (.rowid < before_rowid) else true
   } ( @sort_desc $ ) limit fetch_data_size(page_size);
 

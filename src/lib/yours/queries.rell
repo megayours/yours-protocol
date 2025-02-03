@@ -47,12 +47,21 @@ query get_token_info_by_uid(uid: byte_array): token_dto? {
  * @param page_cursor the page cursor
  * @return The list of all tokens for the given account
  */
-query get_token_balances(account_id: byte_array?, project_blockchain_rid: byte_array?, project_name: name?, collection: name?, page_size: integer?, page_cursor: text?): paged_result {
+query get_token_balances(
+  account_id: byte_array?,
+  project_blockchain_rid: byte_array?,
+  project_name: name?,
+  collection: name?,
+  token_id: big_integer?,
+  page_size: integer?,
+  page_cursor: text?
+): paged_result {
   val paginated_token_balances = get_paginated_balances(
     account_id = account_id,
-    project_blockchain_rid = null,
-    project_name = null,
-    collection = null,
+    project_blockchain_rid = project_blockchain_rid,
+    project_name = project_name,
+    collection = collection,
+    token_id = token_id,
     page_size = page_size,
     page_cursor = page_cursor
   );
