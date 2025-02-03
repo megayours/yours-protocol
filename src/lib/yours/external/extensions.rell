@@ -1,0 +1,10 @@
+@extend(yours.module_metadata)
+function module_metadata(): list<yours.module_info> {
+  return [
+    yours.module_info(
+      name = "external",
+      version = 1,
+      description = "Provides support for tokens hosted on external blockchains"
+    )
+  ];
+}
