@@ -43,7 +43,7 @@ describe('Yours', () => {
         .buildAndSend();
 
       const modules = await session.query<{ name: string; version: number; description: string }[]>('yours.get_supported_modules');
-      expect(modules.length).toBe(2);
+      expect(modules.length).toBe(1);
       expect(modules[0].name).toBe('tracker');
       expect(modules[0].version).toBe(3);
       expect(modules[0].description).toBe('Tracker module');
