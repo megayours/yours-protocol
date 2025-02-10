@@ -1,44 +1,27 @@
-
 /**
- * A single token's metadata. An extension of the ERC1155 Metadata standard.
+ * Provide the metadata for a specific module.
  * 
- * Incomining should be used as operation input since map<text, gtv> is not serializable
- * without losing the name of the nested properties.
+ * @param name The name of the module.
+ * @param metadata The metadata to provide for the module.
+ * @return A map of the module name to the metadata.
  */
-struct token_metadata_incoming {
-  name;
-  properties: json;
-  yours: yours_metadata;
+function provide_module_metadata(name, metadata: map<text, gtv>): map<text, map<text, gtv>> {
+  val properties = map<text, map<text, gtv>>();
+  properties.put(name, metadata);
+  return properties;
 }
 
 /**
- * A single token's metadata. An extension of the ERC1155 Metadata standard.
+ * Parse the metadata for a specific module.
  * 
- * Outgoing should be used as query output in order to preserve the name of the nested properties.
+ * @param name The name of the module.
+ * @param properties The properties of the module.
+ * @return A map of the module name to the metadata.
  */
-struct token_metadata_outgoing {
-  name;
-  properties: map<text, gtv>;
-  yours: yours_metadata;
-}
-
-/**
- * Yours specific metadata.
- */
-struct yours_metadata {
-  modules: list<name>;
-  project: project_info;
-  collection: name;
-  type: name;
-  blockchains: list<byte_array>;
-}
-
-/**
- * A single attribute of a token. Compatible with ERC721 OpenSea standard.
- */
-struct token_attribute {
-  trait_type: text;
-  value: gtv;
+function parse_module_metadata(name, properties: map<text, gtv>): map<text, gtv> {
+  val module_properties = try_call(map<text, gtv>.from_gtv(properties.get_or_default(name, map<text, gtv>().to_gtv()), *));
+  if (module_properties == null) return map<text, gtv>();
+  return module_properties;
 }
 
 /**
@@ -52,9 +35,13 @@ function get_metadata(token): token_metadata_outgoing {
   val base_metadata = imported_attributes @? {
     token
   } ( _json_to_gtv_map ($.json) ) ?: map<text, gtv>();
-  val metadata = populate_metadata(token, set(token_module @* { token } ( .module_name )));
-
-  base_metadata.put_all(metadata);
+  val metadata: map<text, map<text, gtv>> = populate_metadata(token, set(token_module @* { token } ( .module_name )));
+  log("get_metdata: Found Metadata: %s", metadata.to_gtv_pretty());
+  for (m_key in metadata.keys()) {
+    val m_map = metadata.get(m_key);
+    if (m_map.size() == 0) continue;
+    base_metadata.put(m_key, m_map.to_gtv_pretty());
+  }
 
   val project = token.collection.project;
   return token_metadata_outgoing(

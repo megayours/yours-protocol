@@ -1,3 +1,48 @@
+/**
+ * A single token's metadata. An extension of the ERC1155 Metadata standard.
+ * 
+ * Incomining should be used as operation input since map<text, gtv> is not serializable
+ * without losing the name of the nested properties.
+ */
+struct token_metadata_incoming {
+  name;
+  properties: json;
+  yours: yours_metadata;
+}
+
+/**
+ * A single token's metadata. An extension of the ERC1155 Metadata standard.
+ * 
+ * Outgoing should be used as query output in order to preserve the name of the nested properties.
+ */
+struct token_metadata_outgoing {
+  name;
+  properties: map<text, gtv>;
+  yours: yours_metadata;
+}
+
+/**
+ * Yours specific metadata.
+ */
+struct yours_metadata {
+  modules: list<name>;
+  project: project_info;
+  collection: name;
+  type: name;
+  blockchains: list<byte_array>;
+}
+
+/**
+ * A single attribute of a token. Compatible with ERC721 OpenSea standard.
+ */
+struct token_attribute {
+  trait_type: text;
+  value: gtv;
+}
+
+/**
+ * A DTO for a token balance.
+ */
 struct token_balance_dto {
   project: project_info;
   collection: name;
@@ -8,26 +53,41 @@ struct token_balance_dto {
   account_id: byte_array;
 }
 
+/**
+ * A DTO for a token identifier.
+ */
 struct token_identifier {
   project: project_info;
   collection: name;
   token_id: big_integer;
 }
 
+/**
+ * A DTO for a pagination cursor.
+ */
 struct page_cursor {
   before_rowid: rowid? = null;
 }
 
+/**
+ * A DTO for a pagination result.
+ */
 struct pagination_result {
   data: gtv;
   rowid: rowid;
 }
 
+/**
+ * A DTO for a paged result.
+ */
 struct paged_result {
   next_cursor: text?;
   data: list<gtv>;
 }
 
+/**
+ * A DTO for a module info.
+ */
 struct module_info {
   name;
   version: integer;

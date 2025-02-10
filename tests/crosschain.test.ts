@@ -55,7 +55,7 @@ describe('Crosschain', () => {
         collection,
         token_id: tokenId,
       });
-      expect(metadataDapp2.properties['times_bridged']).toEqual(1);
+      expect(metadataDapp2.properties['shared']['times_bridged']).toEqual(1);
     },
     TIMEOUT_TEST
   );
@@ -112,7 +112,11 @@ describe('Crosschain', () => {
         token_id: tokenId,
       });
 
-      expect(sourceMetadata.properties['times_bridged']).toEqual(2);
+      await new Promise((resolve) => setTimeout(resolve, 10000));
+
+      console.log(`sourceMetadata: ${JSON.stringify(sourceMetadata)}`);
+
+      expect(sourceMetadata.properties['shared']['times_bridged']).toEqual(2);
     },
     TIMEOUT_TEST
   );

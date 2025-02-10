@@ -1,22 +1,23 @@
 @extend(yours.after_apply_transfer)
 function after_apply_transfer(yours.token, modules: set<name>, properties: map<text, gtv>) {
   if (not modules.contains(MODULE_NAME)) return;
+  val erc1155_properties = yours.parse_module_metadata(MODULE_NAME, properties);
 
-  if (properties.contains("description")) {
-    set_description(token, text.from_gtv(properties["description"]));
+  if (erc1155_properties.contains("description")) {
+    set_description(token, text.from_gtv(erc1155_properties["description"]));
   }
-  if (properties.contains("image")) {
-    set_image(token, text.from_gtv(properties["image"]));
+  if (erc1155_properties.contains("image")) {
+    set_image(token, text.from_gtv(erc1155_properties["image"]));
   }
-  if (properties.contains("animation_url")) {
-    set_animation(token, text.from_gtv(properties["animation_url"]));
+  if (erc1155_properties.contains("animation_url")) {
+    set_animation(token, text.from_gtv(erc1155_properties["animation_url"]));
   }
 }
 
 @extend(yours.populate_metadata)
-function populate_metadata(yours.token, modules: set<name>): map<text, gtv> {
+function populate_metadata(yours.token, modules: set<name>): map<text, map<text, gtv>> {
   val metadata = map<text, gtv>();
-  if (not modules.contains(MODULE_NAME)) return metadata;
+  if (not modules.contains(MODULE_NAME)) return yours.provide_module_metadata(MODULE_NAME, metadata);
 
   val description = token_description @? { token } ( $.description );
   val image = token_image @? { token } ( $.image );
@@ -32,5 +33,5 @@ function populate_metadata(yours.token, modules: set<name>): map<text, gtv> {
     metadata.put("animation_url", animation.to_gtv());
   }
 
-  return metadata;
+  return yours.provide_module_metadata(MODULE_NAME, metadata);
 }

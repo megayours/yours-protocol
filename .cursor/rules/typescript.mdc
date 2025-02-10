@@ -1,0 +1,28 @@
+---
+description: 
+globs: *.ts
+---
+# Technologies:
+- Use Bun:
+  - as the TypeScript runtime
+  - to serve a HTTP and/or WebSocket API
+  - to connect to databases using their SQL libraries
+- Database:
+  - Use Postgres
+
+# Testing
+- Use bun when writing tests as well as their test runner
+
+# Coding Standards
+- Prefer types over interfaces
+- Use proper TypeScript types for all variables, functions and return types
+- Use barrel imports
+- Implement proper error handling and input validation
+- Always use relative imports
+- Use async/await for asynchronous operations
+
+# Best Practices
+- Ensure secure, efficient code following RESTful API best practices
+- Respect SOLID principles
+- Focus on performance and readability
+- Validate all user input
