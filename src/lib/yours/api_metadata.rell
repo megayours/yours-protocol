@@ -24,6 +24,40 @@ query metadata(
  * @return The metadata of the token in JSON format in order to handle generic attributes values.
  */
 query metadata_by_uid(uid: byte_array): token_metadata_outgoing? {
+  val token = get_token_by_uid(uid);
+  return if (token != null) get_metadata(token) else null;
+}
+
+/**
+ * Returns the metadata of the active token.
+ * 
+ * Returns null if the token is not active.
+ *
+ * @param project_name the project name
+ * @param project_blockchain_rid the project blockchain rid
+ * @param collection the collection name
+ * @param token_id the token id
+ * @return The metadata of the token in JSON format in order to handle generic attributes values.
+ */
+query active_metadata(
+  project_name: name,
+  project_blockchain_rid: byte_array,
+  collection: name,
+  token_id: big_integer
+): token_metadata_outgoing? {
+  val token = get_active_token(project_name, project_blockchain_rid, collection, token_id);
+  return if (token != null) get_metadata(token) else null;
+}
+
+/**
+ * Returns the metadata of the active token by its uid.
+ * 
+ * Returns null if the token is not active.
+ *
+ * @param uid the uid of the token
+ * @return The metadata of the token in JSON format in order to handle generic attributes values.
+ */
+query active_metadata_by_uid(uid: byte_array): token_metadata_outgoing? {
   val token = get_active_token_by_uid(uid);
   return if (token != null) get_metadata(token) else null;
 }
