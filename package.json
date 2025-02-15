@@ -7,7 +7,7 @@
     "start:network": "docker network create yours_network",
     "start:postgres": "docker run -e POSTGRES_DB=postchain -e POSTGRES_USER=postchain -e POSTGRES_PASSWORD=postchain --network yours_network -p 5432:5432 -d --name postgres postgres:14.1-alpine",
     "stop": "docker rm -f -v fondaco_blockchain postgres || true && docker network rm yours_network || true",
-    "postinstall": "node scripts/chr.js install",
+    "postinstall": "bun scripts/chr.js install",
     "pretest": "docker compose up -d && sleep 10",
     "test": "bun test || (bun posttest && exit 1)",
     "posttest": "docker compose down",

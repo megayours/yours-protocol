@@ -46,7 +46,7 @@ async function runCli(args) {
 
 const args = process.argv.slice(2);
 if (args.length === 0) {
-  console.log('Please provide arguments. Usage: node chr.js <command> [args]');
+  console.log('Please provide arguments. Usage: bun chr.js <command> [args]');
   process.exit(1);
 }
 
