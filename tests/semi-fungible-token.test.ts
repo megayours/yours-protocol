@@ -1,24 +1,19 @@
 import { encryption } from 'postchain-client';
 import { createAccount } from './utils/ft4';
-import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
-import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
+import { getTestEnvironment, TestEnvironment } from './utils/setup';
+import { TIMEOUT_TEST } from './utils/constants';
 import { op } from '@chromia/ft4';
 import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
-import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
 import { TokenMetadata } from '@megayours/sdk';
+import { beforeAll, describe, expect, it } from 'bun:test';
 
 describe('Semi-Fungible Token', () => {
   let environment: TestEnvironment;
 
   beforeAll(async () => {
     environment = await getTestEnvironment();
-  }, TIMEOUT_SETUP);
-
-  afterAll(async () => {
-    await teardown(environment.network, environment.chromiaNode, environment.postgres);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-  }, TIMEOUT_SETUP);
+  });
 
   it(
     'able to create a Semi-Fungible Token',
@@ -75,7 +70,7 @@ describe('Semi-Fungible Token', () => {
         .add(op('importer.mint', project.name, collection, BigInt(0), mintAmount))
         .buildAndSend();
 
-      const balance = await session.query<number>('yours.balance', {
+      const balance = await session.query<bigint>('yours.balance', {
         account_id: session.account.id,
         project_name: project.name,
         project_blockchain_rid: session.blockchainRid,
@@ -168,12 +163,15 @@ describe('Semi-Fungible Token', () => {
         .buildAndSend();
 
       // Now, try to transfer the soulbound SFT and expect it to fail
-      await expect(
-        session
+      try {
+        await session
           .transactionBuilder()
           .add(op('mkpl.transfer', project.name, project.blockchain_rid, collection, BigInt(0), BigInt(1), Buffer.from('DEADBEEF', 'hex')))
-          .buildAndSend()
-      ).rejects.toThrow('Only tokens of type yours can be transferred');
+          .buildAndSend();
+        throw new Error('Should have thrown an error');
+      } catch (error) {
+        expect(error.message).toContain('Only tokens of type yours can be transferred');
+      }
     },
     TIMEOUT_TEST
   );

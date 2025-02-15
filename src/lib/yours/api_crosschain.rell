@@ -74,6 +74,8 @@ function _init_transfer(
     op_index = op_context.op_index
   );
 
+  log("Pending transfer created");
+
   after_init_transfer(token, account);
 }
 
@@ -305,12 +307,16 @@ function _ensure_visited_blockchains(token, blockchains: list<byte_array>) {
 }
 
 query get_pending_transfers_for_account(account_id: byte_array) {
-  return pending_transfer @? {
+  return pending_transfer @* {
     .sender.id == account_id
   } (
     tx_data = .transaction.tx_data,
     op_index = .op_index
   );
+}
+
+query is_transfer_applied(tx_rid: byte_array, op_index: integer) {
+  return applied_transfers @? { .init_tx_rid == tx_rid, .init_op_index == op_index } != null;
 }
 
 entity applied_transfers {

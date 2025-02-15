@@ -19,7 +19,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install
+        run: bun install
 
       - name: Run integration tests
-        run: npm run test:integration
+        run: bun test

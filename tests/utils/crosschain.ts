@@ -1,9 +1,10 @@
-import { getTransactionRid, Session, transactionBuilder } from '@chromia/ft4';
+import { getTransactionRid, Session, transactionBuilder, TransactionWithReceipt } from '@chromia/ft4';
 import { noopAuthenticator, op } from '@chromia/ft4';
 import { gtv, RawGtx, IClient, SignatureProvider, createIccfProofTx, createClient } from 'postchain-client';
 import { createErc1155Properties } from './metadata';
 import { CrosschainTestParams } from './types';
 import { serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
+import { expect } from 'bun:test';
 
 export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
   const erc1155Properties = createErc1155Properties();
@@ -57,7 +58,7 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
     metadata
   );
 
-  const dapp1Balance = await params.dapp1Session.query<number>('yours.balance', {
+  const dapp1Balance = await params.dapp1Session.query<bigint>('yours.balance', {
     account_id: params.dapp1Session.account.id,
     project_name: params.project.name,
     project_blockchain_rid: params.project.blockchain_rid,
@@ -66,7 +67,7 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
   });
   expect(dapp1Balance).toBe(params.mintAmount - params.transferAmount);
 
-  const dapp2Balance = await params.dapp2Session.query<number>('yours.balance', {
+  const dapp2Balance = await params.dapp2Session.query<bigint>('yours.balance', {
     account_id: params.dapp2Session.account.id,
     project_name: params.project.name,
     project_blockchain_rid: params.project.blockchain_rid,
@@ -75,6 +76,29 @@ export const testCrossChainTransfer = async (params: CrosschainTestParams) => {
   });
   expect(dapp2Balance).toBe(params.transferAmount);
 };
+
+export async function initTransfer(
+  fromSession: Session,
+  toChain: IClient,
+  toAccountId: Buffer,
+  tokenId: bigint,
+  amount: bigint,
+  metadata: TokenMetadata
+): Promise<TransactionWithReceipt> {
+  return fromSession
+    .transactionBuilder()
+    .add(
+      op(
+        'yours.init_transfer',
+        Buffer.from(toChain.config.blockchainRid, 'hex'),
+        toAccountId,
+        tokenId,
+        amount,
+        serializeTokenMetadata(metadata)
+      )
+    )
+    .buildAndSendWithAnchoring();
+}
 
 export async function performCrossChainTransfer(
   fromSession: Session,
@@ -157,7 +181,7 @@ export async function performCrossChainTransfer(
   });
 }
 
-export async function performOracleCrossChainTransfer(
+export async function initOracleTransfer(
   fromChain: IClient,
   toChain: IClient,
   oracleSignatureProvider: SignatureProvider,
@@ -166,14 +190,7 @@ export async function performOracleCrossChainTransfer(
   tokenId: bigint,
   amount: bigint,
   metadata: TokenMetadata
-): Promise<void> {
-  // Create management chain client
-  const nodeUrl = fromChain.config.endpointPool[0].url;
-  const managementChain = await createClient({
-    directoryNodeUrlPool: [nodeUrl],
-    blockchainIid: 0,
-  });
-
+): Promise<Buffer> {
   // Init Transfer on Source Chain
   const initTx = {
     operations: [
@@ -192,6 +209,36 @@ export async function performOracleCrossChainTransfer(
 
   const signedInitTx = await fromChain.signTransaction(initTx, oracleSignatureProvider);
   await fromChain.sendTransaction(signedInitTx);
+  return signedInitTx;
+}
+
+export async function performOracleCrossChainTransfer(
+  fromChain: IClient,
+  toChain: IClient,
+  oracleSignatureProvider: SignatureProvider,
+  fromAccountId: Buffer,
+  toAccountId: Buffer,
+  tokenId: bigint,
+  amount: bigint,
+  metadata: TokenMetadata
+): Promise<void> {
+  // Create management chain client
+  const nodeUrl = fromChain.config.endpointPool[0].url;
+  const managementChain = await createClient({
+    directoryNodeUrlPool: [nodeUrl],
+    blockchainIid: 0,
+  });
+
+  const signedInitTx = await initOracleTransfer(
+    fromChain,
+    toChain,
+    oracleSignatureProvider,
+    fromAccountId,
+    toAccountId,
+    tokenId,
+    amount,
+    metadata
+  );
 
   const rawInitTx = gtv.decode(signedInitTx) as RawGtx;
   const initTxRid = getTransactionRid(rawInitTx);
@@ -235,4 +282,10 @@ export async function performOracleCrossChainTransfer(
   };
 
   await fromChain.signAndSendUniqueTransaction(completeTx, oracleSignatureProvider);
+}
+
+export async function readTestData(path: string) {
+  // Use Bun.file() instead of fs.readFile
+  const file = Bun.file(path);
+  return await file.json();
 }

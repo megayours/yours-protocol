@@ -1,21 +1,18 @@
-import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
-import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
+import { getTestEnvironment, TestEnvironment } from './utils/setup';
+import { TIMEOUT_TEST } from './utils/constants';
 import { createAccount } from './utils/ft4';
 import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { randomCollectionName } from './utils/random';
 import { encryption } from 'postchain-client';
 import { op } from '@chromia/ft4';
+import { beforeAll, describe, expect, it } from 'bun:test';
 
 describe('Yours', () => {
   let environment: TestEnvironment;
 
   beforeAll(async () => {
     environment = await getTestEnvironment();
-  }, TIMEOUT_SETUP);
-
-  afterAll(async () => {
-    await teardown(environment.network, environment.chromiaNode, environment.postgres);
-  }, TIMEOUT_SETUP);
+  });
 
   it(
     'able to get module metadata',

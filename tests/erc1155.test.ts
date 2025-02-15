@@ -1,11 +1,11 @@
 import { encryption } from 'postchain-client';
 import { createAccount } from './utils/ft4';
-import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
-import { TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
+import { getTestEnvironment, TestEnvironment } from './utils/setup';
+import { TIMEOUT_TEST } from './utils/constants';
 import { op } from '@chromia/ft4';
 import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
-import { expect } from '@jest/globals';
 import { randomCollectionName } from './utils/random';
+import { beforeAll, describe, expect, it } from 'bun:test';
 
 type ERC1155Metadata = {
   name: string;
@@ -20,12 +20,7 @@ describe('ERC1155', () => {
 
   beforeAll(async () => {
     environment = await getTestEnvironment();
-  }, TIMEOUT_SETUP);
-
-  afterAll(async () => {
-    await teardown(environment.network, environment.chromiaNode, environment.postgres);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-  }, TIMEOUT_SETUP);
+  });
 
   it(
     'NFT has correct metadata',

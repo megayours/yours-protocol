@@ -1,24 +1,21 @@
 import { encryption } from 'postchain-client';
-import { ADMIN_SIGNATURE_PROVIDER, TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
+import { ADMIN_SIGNATURE_PROVIDER, TIMEOUT_TEST } from './utils/constants';
 import { randomCollectionName } from './utils/random';
-import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
+import { getTestEnvironment, TestEnvironment } from './utils/setup';
 import { createAccount } from './utils/ft4';
 import { op } from '@chromia/ft4';
-import { createMegaYoursClient, TokenMetadata } from '@megayours/sdk';
+import { createMegaYoursClient, Property, TokenMetadata } from '@megayours/sdk';
 import { createProjectMetadata } from './utils/metadata';
 import { evmAddressFromKeyPair } from './utils/address';
 import { performOracleCrossChainTransfer } from './utils/crosschain';
+import { beforeAll, describe, expect, it } from 'bun:test';
 
 describe('External', () => {
   let environment: TestEnvironment;
 
   beforeAll(async () => {
     environment = await getTestEnvironment();
-  }, TIMEOUT_SETUP);
-
-  afterAll(async () => {
-    await teardown(environment.network, environment.chromiaNode, environment.postgres);
-  }, TIMEOUT_SETUP);
+  });
 
   it(
     'should emit and handle mint event',
@@ -45,7 +42,7 @@ describe('External', () => {
         .add(op('tokenchain_simulator.emit_mint', project, collection, tokenId, tokenName, chain, contract, metadata, to, BigInt(1)))
         .buildAndSend();
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const ownerAccountIds = await environment.dapp2Client.query<{ data: Buffer[] }>('yours.external.owners_account_ids', {
         chain,
@@ -103,7 +100,7 @@ describe('External', () => {
         .add(op('tokenchain_simulator.emit_transfer', chain, contract, tokenId, from, to, BigInt(1)))
         .buildAndSend();
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const ownerAccountIds = await environment.dapp2Client.query<{ data: Buffer[] }>('yours.external.owners_account_ids', {
         chain,
@@ -163,7 +160,7 @@ describe('External', () => {
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
       expect(ownerAccountIds.data.length).toEqual(1);
@@ -176,7 +173,6 @@ describe('External', () => {
       expect(dapp1Balance.amount).toBeUndefined();
 
       const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
-      console.log('Metadata: ', dapp2Metadata);
       expect(dapp2Metadata).toBeDefined();
 
       expect(dapp2Metadata.yours.type).toEqual('external');
@@ -245,7 +241,7 @@ describe('External', () => {
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
       expect(ownerAccountIds.data.length).toEqual(1);
@@ -258,7 +254,6 @@ describe('External', () => {
       expect(dapp1Balance.amount).toBeUndefined();
 
       const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
-      console.log('Metadata: ', dapp2Metadata);
       expect(dapp2Metadata).toBeDefined();
 
       expect(dapp2Metadata.yours.type).toEqual('external');
@@ -321,7 +316,7 @@ describe('External', () => {
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
       expect(ownerAccountIds.data.length).toEqual(1);
@@ -334,7 +329,6 @@ describe('External', () => {
       expect(dapp1Balance.amount).toBeUndefined();
 
       const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
-      console.log('Metadata: ', dapp2Metadata);
       expect(dapp2Metadata).toBeDefined();
 
       expect(dapp2Metadata.yours.type).toEqual('external');
@@ -343,7 +337,9 @@ describe('External', () => {
 
       expect(dapp2Metadata.properties['attributes']).toBeUndefined();
       expect(dapp2Metadata.properties['Background']).toEqual('Blue');
-      expect(dapp2Metadata.properties['NestedObject']).toEqual({ NestedKey: 'NestedValue' });
+      expect(dapp2Metadata.properties['NestedObject']).toEqual({
+        NestedKey: 'NestedValue',
+      } as unknown as Property);
     },
     TIMEOUT_TEST
   );
@@ -392,7 +388,7 @@ describe('External', () => {
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Ensure the token was picked up by the other chain
       const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
@@ -459,7 +455,7 @@ describe('External', () => {
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const metadata: TokenMetadata = await dapp1Session.query<TokenMetadata>('yours.metadata', {
         project_name: project.name,

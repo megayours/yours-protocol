@@ -1,0 +1,8 @@
+[test]
+# Configure Bun's test runner
+coverage = true
+timeout = 60000
+
+[install]
+# Configure package installation
+registry = "https://registry.npmjs.org" 

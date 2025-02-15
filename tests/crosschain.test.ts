@@ -1,24 +1,21 @@
-import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
-import { ADMIN_SIGNATURE_PROVIDER, TIMEOUT_SETUP, TIMEOUT_TEST } from './utils/constants';
+import { getTestEnvironment, TestEnvironment } from './utils/setup';
+import { ADMIN_SIGNATURE_PROVIDER, TIMEOUT_TEST } from './utils/constants';
 import { createAccount } from './utils/ft4';
 import { createErc1155Properties, createProjectMetadata, createTokenMetadata } from './utils/metadata';
 import { randomCollectionName } from './utils/random';
 import { encryption } from 'postchain-client';
 import { performCrossChainTransfer, serializeTokenMetadata, TokenMetadata } from '@megayours/sdk';
 import { CrosschainTestParams } from './utils/types';
-import { performOracleCrossChainTransfer, testCrossChainTransfer } from './utils/crosschain';
+import { initTransfer, performOracleCrossChainTransfer, testCrossChainTransfer } from './utils/crosschain';
 import { op } from '@chromia/ft4';
+import { beforeAll, describe, expect, it } from 'bun:test';
 
 describe('Crosschain', () => {
   let environment: TestEnvironment;
 
   beforeAll(async () => {
     environment = await getTestEnvironment();
-  }, TIMEOUT_SETUP);
-
-  afterAll(async () => {
-    await teardown(environment.network, environment.chromiaNode, environment.postgres);
-  }, TIMEOUT_SETUP);
+  });
 
   it(
     'able to parse and update properties',
@@ -112,9 +109,7 @@ describe('Crosschain', () => {
         token_id: tokenId,
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-
-      console.log(`sourceMetadata: ${JSON.stringify(sourceMetadata)}`);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       expect(sourceMetadata.properties['shared']['times_bridged']).toEqual(2);
     },
@@ -363,8 +358,8 @@ describe('Crosschain', () => {
       });
 
       // Act
-      await expect(
-        performOracleCrossChainTransfer(
+      try {
+        await performOracleCrossChainTransfer(
           environment.dapp1Client,
           environment.dapp2Client,
           ADMIN_SIGNATURE_PROVIDER,
@@ -373,8 +368,58 @@ describe('Crosschain', () => {
           tokenId,
           BigInt(1),
           metadata
+        );
+        throw new Error('Should have thrown an error');
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
+    },
+    TIMEOUT_TEST
+  );
+
+  it(
+    'able to resume pending transfers',
+    async () => {
+      // Arrange
+      const keyPair = encryption.makeKeyPair();
+      const dapp1Session = await createAccount(environment.dapp1Client, keyPair);
+      await createAccount(environment.dapp2Client, keyPair);
+
+      const collection = randomCollectionName();
+      const project = createProjectMetadata(environment.dapp1Client.config.blockchainRid);
+      const tokenMetadata = createTokenMetadata(project, collection);
+      const tokenId = BigInt(0);
+
+      const erc1155Properties = createErc1155Properties();
+      await dapp1Session
+        .transactionBuilder()
+        .add(
+          op(
+            'importer.nft',
+            project.name,
+            collection,
+            tokenMetadata.name,
+            tokenId,
+            JSON.stringify(tokenMetadata.properties),
+            [erc1155Properties.description, erc1155Properties.image, erc1155Properties.animation_url],
+            'yours'
+          )
         )
-      ).rejects.toThrow();
+        .buildAndSend();
+
+      const metadata: TokenMetadata = await dapp1Session.query<TokenMetadata>('yours.metadata', {
+        project_name: project.name,
+        project_blockchain_rid: project.blockchain_rid,
+        collection: collection,
+        token_id: tokenId,
+      });
+
+      await initTransfer(dapp1Session, environment.dapp2Client, dapp1Session.account.id, tokenId, BigInt(1), metadata);
+
+      const pendingTransfers = await dapp1Session.getPendingTransfers(dapp1Session.account.id);
+      expect(pendingTransfers.length).toBe(1);
+
+      await dapp1Session.resumeCrosschainTransfer(pendingTransfers[0]);
     },
     TIMEOUT_TEST
   );

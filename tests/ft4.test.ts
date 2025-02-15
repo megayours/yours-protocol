@@ -1,18 +1,15 @@
 import { encryption } from 'postchain-client';
 import { createAccount } from './utils/ft4';
-import { getTestEnvironment, teardown, TestEnvironment } from './utils/setup';
-import { TIMEOUT_SETUP } from './utils/constants';
+import { getTestEnvironment, TestEnvironment } from './utils/setup';
+import { expect, it } from 'bun:test';
+import { beforeAll, describe } from 'bun:test';
 
 describe('FT4', () => {
   let environment: TestEnvironment;
 
   beforeAll(async () => {
     environment = await getTestEnvironment();
-  }, TIMEOUT_SETUP);
-
-  afterAll(async () => {
-    await teardown(environment.network, environment.chromiaNode, environment.postgres);
-  }, TIMEOUT_SETUP);
+  });
 
   it('able to register an account to dapp1', async () => {
     const keyPair = encryption.makeKeyPair();
