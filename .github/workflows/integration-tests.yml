@@ -17,8 +17,5 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Setup test environment
-        run: docker compose up -d && sleep 30
-
       - name: Run tests
         run: bun test
