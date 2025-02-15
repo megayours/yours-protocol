@@ -23,10 +23,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@chromia/ft4": "^1.0.0",
+    "@chromia/ft4": "^1.0.1",
     "@commitlint/cli": "^19.4.0",
     "@commitlint/config-conventional": "^19.2.2",
-    "@megayours/sdk": "0.1.41",
+    "@megayours/sdk": "0.1.42",
     "@testcontainers/postgresql": "^10.18.0",
     "@typescript-eslint/eslint-plugin": "^8.2.0",
     "@typescript-eslint/parser": "^8.2.0",
