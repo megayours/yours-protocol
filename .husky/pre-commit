@@ -2,4 +2,12 @@ npx lint-staged
 #chr code format --source-dir src/lib/yours
 #chr code lint --source-dir src/lib/yours
 git add --all
+
+echo "Starting test environment..."
+docker compose up -d && sleep 10
+
+echo "Running tests..."
 bun run test
+
+echo "Stopping test environment..."
+docker compose down

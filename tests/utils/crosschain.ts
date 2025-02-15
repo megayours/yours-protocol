@@ -283,9 +283,3 @@ export async function performOracleCrossChainTransfer(
 
   await fromChain.signAndSendUniqueTransaction(completeTx, oracleSignatureProvider);
 }
-
-export async function readTestData(path: string) {
-  // Use Bun.file() instead of fs.readFile
-  const file = Bun.file(path);
-  return await file.json();
-}
