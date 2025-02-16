@@ -204,7 +204,7 @@ describe('Semi-Fungible Token', () => {
         .add(op('importer.mint', project.name, collection, BigInt(0), BigInt(1)))
         .buildAndSend();
 
-      const history = await session.getTransferHistory({ account_id: session.account.id }, 1, null);
+      const history = await session.history.getTransfers({ account_id: session.account.id }, 1, null);
 
       expect(history.data.length).toBe(1);
       expect(history.data[0].amount).toBe(BigInt(1));
@@ -256,7 +256,7 @@ describe('Semi-Fungible Token', () => {
         .add(op('mkpl.transfer', project.name, project.blockchain_rid, collection, BigInt(0), BigInt(1), session2.account.id))
         .buildAndSend();
 
-      const historySender = await session.getTransferHistory({ account_id: session.account.id }, 1, null);
+      const historySender = await session.history.getTransfers({ account_id: session.account.id }, 1, null);
 
       expect(historySender.data.length).toBe(1);
       expect(historySender.data[0].amount).toBe(BigInt(1));
@@ -272,7 +272,7 @@ describe('Semi-Fungible Token', () => {
       expect(historySender.data[0].token.id).toBe(BigInt(0));
       expect(historySender.data[0].token.name).toBe(tokenMetadata.name);
 
-      const historyReceiver = await session.getTransferHistory({ account_id: session2.account.id }, 1, null);
+      const historyReceiver = await session.history.getTransfers({ account_id: session2.account.id }, 1, null);
 
       expect(historyReceiver.data.length).toBe(1);
       expect(historyReceiver.data[0].amount).toBe(BigInt(1));

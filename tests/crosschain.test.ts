@@ -226,7 +226,7 @@ describe('Crosschain', () => {
       await testCrossChainTransfer(params);
 
       // Verify
-      const sourceChainHistory = await dapp1Session.getTransferHistory({ account_id: dapp1Session.account.id }, 1, null);
+      const sourceChainHistory = await dapp1Session.history.getTransfers({ account_id: dapp1Session.account.id }, 1, null);
       expect(sourceChainHistory.data.length).toBe(1);
       expect(sourceChainHistory.data[0].amount).toBe(BigInt(1));
       expect(sourceChainHistory.data[0].blockchain_rid).toEqual(dapp2Session.blockchainRid);
@@ -241,7 +241,7 @@ describe('Crosschain', () => {
       expect(sourceChainHistory.data[0].token.id).toBe(BigInt(0));
       expect(sourceChainHistory.data[0].token.name).toBe(tokenMetadata.name);
 
-      const targetChainHistory = await dapp2Session.getTransferHistory({ account_id: dapp2Session.account.id }, 1, null);
+      const targetChainHistory = await dapp2Session.history.getTransfers({ account_id: dapp2Session.account.id }, 1, null);
       expect(targetChainHistory.data.length).toBe(1);
       expect(targetChainHistory.data[0].amount).toBe(BigInt(1));
       expect(targetChainHistory.data[0].blockchain_rid).toEqual(dapp1Session.blockchainRid);
@@ -287,7 +287,7 @@ describe('Crosschain', () => {
       await testCrossChainTransfer(params);
 
       // Verify
-      const sourceChainHistory = await dapp1Session.getTransferHistory({ account_id: dapp1Session.account.id }, 1, null);
+      const sourceChainHistory = await dapp1Session.history.getTransfers({ account_id: dapp1Session.account.id }, 1, null);
       expect(sourceChainHistory.data.length).toBe(1);
       expect(sourceChainHistory.data[0].amount).toBe(BigInt(15));
       expect(sourceChainHistory.data[0].blockchain_rid).toEqual(dapp2Session.blockchainRid);
@@ -302,7 +302,7 @@ describe('Crosschain', () => {
       expect(sourceChainHistory.data[0].token.id).toBe(BigInt(0));
       expect(sourceChainHistory.data[0].token.name).toBe(tokenMetadata.name);
 
-      const targetChainHistory = await dapp2Session.getTransferHistory({ account_id: dapp2Session.account.id }, 1, null);
+      const targetChainHistory = await dapp2Session.history.getTransfers({ account_id: dapp2Session.account.id }, 1, null);
       expect(targetChainHistory.data.length).toBe(1);
       expect(targetChainHistory.data[0].amount).toBe(BigInt(15));
       expect(targetChainHistory.data[0].blockchain_rid).toEqual(dapp1Session.blockchainRid);
@@ -416,10 +416,10 @@ describe('Crosschain', () => {
 
       await initTransfer(dapp1Session, environment.dapp2Client, dapp1Session.account.id, tokenId, BigInt(1), metadata);
 
-      const pendingTransfers = await dapp1Session.getPendingTransfers(dapp1Session.account.id);
+      const pendingTransfers = await dapp1Session.crosschain.getPendingTransfers(dapp1Session.account.id);
       expect(pendingTransfers.length).toBe(1);
 
-      await dapp1Session.resumeCrosschainTransfer(pendingTransfers[0]);
+      await dapp1Session.crosschain.resumeTransfer(pendingTransfers[0]);
     },
     TIMEOUT_TEST
   );

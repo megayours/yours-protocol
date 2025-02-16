@@ -156,23 +156,23 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
+      const ownerships = await dapp1Session.balance.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      const ownerAccountIds = await dapp2Session.external.getExternalOwnersAccountIds(chain, contract, tokenId);
       expect(ownerAccountIds.data.length).toEqual(1);
       expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       const megaClient = createMegaYoursClient(dapp1Session);
-      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
+      await megaClient.crosschain.transfer(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      const dapp1Balance = await dapp1Session.balance.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
       expect(dapp1Balance.amount).toBeUndefined();
 
-      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
+      const dapp2Metadata = await dapp2Session.token.getMetadata(project, collection, tokenId);
       expect(dapp2Metadata).toBeDefined();
 
       expect(dapp2Metadata.yours.type).toEqual('external');
@@ -237,23 +237,23 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
+      const ownerships = await dapp1Session.balance.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      const ownerAccountIds = await dapp2Session.external.getExternalOwnersAccountIds(chain, contract, tokenId);
       expect(ownerAccountIds.data.length).toEqual(1);
       expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       const megaClient = createMegaYoursClient(dapp1Session);
-      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
+      await megaClient.crosschain.transfer(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      const dapp1Balance = await dapp1Session.balance.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
       expect(dapp1Balance.amount).toBeUndefined();
 
-      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
+      const dapp2Metadata = await dapp2Session.token.getMetadata(project, collection, tokenId);
       expect(dapp2Metadata).toBeDefined();
 
       expect(dapp2Metadata.yours.type).toEqual('external');
@@ -312,23 +312,23 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
+      const ownerships = await dapp1Session.balance.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      const ownerAccountIds = await dapp2Session.external.getExternalOwnersAccountIds(chain, contract, tokenId);
       expect(ownerAccountIds.data.length).toEqual(1);
       expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       const megaClient = createMegaYoursClient(dapp1Session);
-      await megaClient.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
+      await megaClient.crosschain.transfer(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      const dapp1Balance = await dapp1Session.balance.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
       expect(dapp1Balance.amount).toBeUndefined();
 
-      const dapp2Metadata = await dapp2Session.getMetadata(project, collection, tokenId);
+      const dapp2Metadata = await dapp2Session.token.getMetadata(project, collection, tokenId);
       expect(dapp2Metadata).toBeDefined();
 
       expect(dapp2Metadata.yours.type).toEqual('external');
@@ -384,27 +384,27 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
+      const ownerships = await dapp1Session.balance.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Ensure the token was picked up by the other chain
-      const ownerAccountIds = await dapp2Session.getExternalOwnersAccountIds(chain, contract, tokenId);
+      const ownerAccountIds = await dapp2Session.external.getExternalOwnersAccountIds(chain, contract, tokenId);
       expect(ownerAccountIds.data.length).toEqual(1);
       expect(ownerAccountIds.data[0].toString('hex')).toEqual(dapp2Session.account.id.toString('hex'));
 
       // Transfer the token to the other chain
-      await dapp1Session.transferCrosschain(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
+      await dapp1Session.crosschain.transfer(dapp2Session.client, dapp2Session.account.id, project, collection, tokenId, BigInt(1));
 
       // Transfer the token back to the original chain
-      await dapp2Session.transferCrosschain(dapp1Session.client, dapp1Session.account.id, project, collection, tokenId, BigInt(1));
+      await dapp2Session.crosschain.transfer(dapp1Session.client, dapp1Session.account.id, project, collection, tokenId, BigInt(1));
 
-      const dapp1Balance = await dapp1Session.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
+      const dapp1Balance = await dapp1Session.balance.getTokenBalance(dapp1Session.account.id, project, collection, tokenId);
       expect(dapp1Balance.amount).toBeUndefined();
 
-      const dapp2Balance = await dapp2Session.getTokenBalance(dapp2Session.account.id, project, collection, tokenId);
+      const dapp2Balance = await dapp2Session.balance.getTokenBalance(dapp2Session.account.id, project, collection, tokenId);
       expect(dapp2Balance.amount).toBeUndefined();
     },
     TIMEOUT_TEST
@@ -451,7 +451,7 @@ describe('External', () => {
         )
         .buildAndSend();
 
-      const ownerships = await dapp1Session.getTokenBalances({ account_id: dapp1Session.account.id });
+      const ownerships = await dapp1Session.balance.getTokenBalances({ account_id: dapp1Session.account.id });
       expect(ownerships.data.length).toEqual(1);
       expect(ownerships.data[0].amount).toEqual(BigInt(1));
 
@@ -477,7 +477,7 @@ describe('External', () => {
       );
 
       // Verify
-      const sourceChainHistory = await dapp1Session.getTransferHistory({ account_id: dapp1Session.account.id }, 1, null);
+      const sourceChainHistory = await dapp1Session.history.getTransfers({ account_id: dapp1Session.account.id }, 1, null);
       expect(sourceChainHistory.data.length).toBe(1);
       expect(sourceChainHistory.data[0].amount).toBe(BigInt(1));
       expect(sourceChainHistory.data[0].blockchain_rid).toEqual(dapp2Session.blockchainRid);
@@ -492,7 +492,7 @@ describe('External', () => {
       expect(sourceChainHistory.data[0].token.id).toBe(tokenId);
       expect(sourceChainHistory.data[0].token.name).toBe(metadata.name);
 
-      const targetChainHistory = await dapp2Session.getTransferHistory({ account_id: dapp2Session.account.id }, 1, null);
+      const targetChainHistory = await dapp2Session.history.getTransfers({ account_id: dapp2Session.account.id }, 1, null);
       expect(targetChainHistory.data.length).toBe(1);
       expect(targetChainHistory.data[0].amount).toBe(BigInt(1));
       expect(targetChainHistory.data[0].blockchain_rid).toEqual(dapp1Session.blockchainRid);
