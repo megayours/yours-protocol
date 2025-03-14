@@ -1,0 +1,17 @@
+@extend(yours.provide_properties)
+function (yours.token, modules: set<name>): map<text, map<text, gtv>> {
+  val properties = map<text, map<text, gtv>>();
+  if (not modules.contains(MODULE_NAME)) return properties;
+
+  val erc20 = erc20_balance @? { token } ( chain = .erc20.chain, contract = .erc20.contract, name = .erc20.name, symbol = .erc20.symbol, decimals = .erc20.decimals, amount = .amount );
+  if (erc20 != null) {
+    properties.put("erc20", map<text, gtv>());
+    properties.get("erc20").put("chain", erc20.chain.to_gtv());
+    properties.get("erc20").put("contract", erc20.contract.to_hex().to_gtv());
+    properties.get("erc20").put("name", erc20.name.to_gtv());
+    properties.get("erc20").put("symbol", erc20.symbol.to_gtv());
+    properties.get("erc20").put("decimals", erc20.decimals.to_gtv());
+    properties.get("erc20").put("balance", erc20.amount.to_gtv());
+  }
+  return properties;
+}

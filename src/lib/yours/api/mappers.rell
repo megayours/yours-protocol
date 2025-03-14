@@ -1,0 +1,8 @@
+function map_token(yours.token) {
+  return (
+    id = token.id,
+    issuing_chain = token.issuing_chain,
+    decimals = token.decimals,
+    type = token.type
+  );
+}

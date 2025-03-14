@@ -1,0 +1,6 @@
+@extend(yours.receive_properties)
+function (yours.token, module_name: name, properties: map<text, gtv>) {
+  if (module_name != MODULE_NAME) return;
+  yours.attach_module(token, MODULE_NAME);
+  properties_handled(token, properties);
+}

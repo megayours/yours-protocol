@@ -1,0 +1,99 @@
+
+/**
+ * Returns the list of transfers for the given account.
+ *
+ * @param account_id the account id
+ * @param id the token id
+ * @param issuing_chain the issuing chain
+ * @param type the transfer type
+ * @return The list of transfers for the given account
+ */
+query get_transfer_history(
+  account_id: byte_array?,
+  id: byte_array?,
+  issuing_chain: byte_array?,
+  type: yours.transfer_type?,
+  from_height: integer?,
+  page_size: integer?,
+  page_cursor: text?
+) {
+  val paginated_transfers = get_paginated_transfers(
+    account_id = account_id,
+    id = id,
+    issuing_chain = issuing_chain,
+    type = type,
+    height = from_height,
+    page_size = page_size,
+    page_cursor = page_cursor
+  );
+  return paging.make_page(paginated_transfers, page_size);
+}
+
+/**
+ * Returns the transfer history entry for the given rowid.
+ *
+ * @param rowid the rowid
+ * @return The transfer history entry for the given rowid
+ */
+query get_transfer_history_entry(rowid) {
+  val entry = yours.transfer_history_entry @? { .rowid == rowid };
+  return if (empty(entry)) null else extract_data_from_transfer_history_entry(entry);
+}
+
+function get_paginated_transfers(
+  account_id: byte_array?,
+  id: byte_array?,
+  issuing_chain: byte_array?,
+  type: yours.transfer_type?,
+  height: integer?,
+  page_size: integer?,
+  page_cursor: text?
+) {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = paging.decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val entries = yours.transfer_history_entry @* {
+      if (account_id == null) true else .account.id == account_id,
+      if (id == null) true else .token.id == id,
+      if (issuing_chain == null) true else .token.issuing_chain == issuing_chain,
+      if (type == null) true else .type == type,
+      if (height == null) true else (.transaction.block.block_height > height),
+      if (before_rowid??) (.rowid < before_rowid) else true
+    } ( @sort_desc $ ) limit paging.fetch_data_size(page_size);
+
+  return extract_data_from_transfer_history_list(entries) @* { } (
+      paging.pagination_result (
+        data = .data,
+        rowid = .rowid
+      )
+    );
+}
+
+function extract_data_from_transfer_history_list(
+  entries: list<yours.transfer_history_entry>
+): list<(data:gtv,rowid:rowid)> {
+  return entries @* { } (
+    data = extract_data_from_transfer_history_entry ($).to_gtv_pretty(),
+    rowid = .rowid
+  );
+}
+
+function extract_data_from_transfer_history_entry(entry: yours.transfer_history_entry) {
+  return (
+    id = entry.rowid,
+    account_id = entry.account.id,
+    amount = entry.amount,
+    decimals = entry.token.decimals,
+    token = map_token(entry.token),
+    type = entry.type,
+    timestamp = entry.transaction.block.timestamp,
+    block_height = entry.transaction.block.block_height,
+    tx_rid = entry.transaction.tx_rid,
+    tx_data = entry.transaction.tx_data,
+    op_index = entry.op_index,
+    blockchain_rid = yours.crosschain_transfer_history_entry @? { entry } ( .blockchain_rid )
+  );
+}

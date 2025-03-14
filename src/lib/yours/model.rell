@@ -1,0 +1,75 @@
+enum token_type {
+  yours,
+  soulbound,
+  external
+}
+
+/**
+ * The underlying token which can be either fungible or non-fungible.
+ * Dapps are expected to create their own entities which references this token.
+ */
+entity token {
+  key id: byte_array, issuing_chain: byte_array;
+  decimals: integer;
+  mutable type: token_type;
+}
+
+/**
+ * The balance of a token for an account.
+ * A token may still exist without any balances.
+ */
+entity token_balance {
+  key token, ft4.accounts.account;
+  mutable amount: big_integer;
+}
+
+/**
+ * Modules where tokens are allowed to operate within.
+ * This is primarily used in order to prevent extendable functions with 
+ * the wrong context from being executed.
+ */
+entity token_module {
+  key token, module_name: name;
+}
+
+/**
+ * Metadata that has arrived from a different blockchain.
+ * Not every dapp will support the same modules (& utility) for a token.
+ * 
+ * While a chain `B`might only support the token to be used in module `X`.
+ * In the above scenario `chain B` still need to persist metadata for module `B`,
+ * since chain `B` has no idea about module `Y`. But if the tokens gets transferred 
+ * to a chain `C` then we must not lose the metadata of module `Y`.
+ */
+entity imported_properties {
+  key token;
+  mutable data: byte_array;
+}
+
+/**
+ * A list of blockchains that have visited a token.
+ */
+entity visited_blockchain {
+  key token, blockchain_rid: byte_array;
+}
+
+/**
+ * A history entry of ownership transfers.
+ */
+@log
+entity transfer_history_entry {
+  op_index: integer;
+  token;
+  ft4.accounts.account;
+  amount: big_integer;
+  type: transfer_type;
+}
+
+/**
+ * A history entry of crosschain transfers.
+ */
+@log
+entity crosschain_transfer_history_entry {
+  key transfer_history_entry;
+  blockchain_rid: byte_array;
+}

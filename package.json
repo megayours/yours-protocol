@@ -1,0 +1,50 @@
+{
+  "name": "yours",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "start:network": "docker network create yours_network",
+    "start:postgres": "docker run -e POSTGRES_DB=postchain -e POSTGRES_USER=postchain -e POSTGRES_PASSWORD=postchain --network yours_network -p 5432:5432 -d --name postgres postgres:14.1-alpine",
+    "stop": "docker rm -f -v fondaco_blockchain postgres || true && docker network rm yours_network || true",
+    "postinstall": "bun scripts/chr.js install",
+    "test": "bun scripts/test-env.ts && bun test || (bun scripts/test-env.ts cleanup && exit 1)",
+    "posttest": "bun scripts/test-env.ts cleanup",
+    "prepare": "husky",
+    "build": "bun build ./src/index.ts --outdir ./dist",
+    "dev": "bun --watch src/index.ts"
+  },
+  "lint-staged": {
+    "*": "prettier --ignore-unknown --write",
+    "*.{js,ts,tsx}": "eslint --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@chromia/ft4": "^1.0.1",
+    "@commitlint/cli": "^19.4.0",
+    "@commitlint/config-conventional": "^19.2.2",
+    "@megayours/sdk": "file:../ts-sdk",
+    "@testcontainers/postgresql": "^10.18.0",
+    "@typescript-eslint/eslint-plugin": "^8.2.0",
+    "@typescript-eslint/parser": "^8.2.0",
+    "dotenv": "^16.4.5",
+    "eslint": "^9.9.1",
+    "husky": "^9.1.5",
+    "lint-staged": "^15.2.2",
+    "prettier": "^3.3.3",
+    "testcontainers": "^10.18.0",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.2.0",
+    "bun-types": "latest"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0",
+    "ethereumjs-util": "^7.1.5",
+    "tweetnacl": "^1.0.3"
+  },
+  "engines": {
+    "bun": ">=1.2.0"
+  }
+}

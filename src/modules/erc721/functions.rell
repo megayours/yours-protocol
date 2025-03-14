@@ -1,0 +1,87 @@
+@extend(receive_icmf_message)
+function _handle_message(sender: byte_array, topic: text, body: gtv) {
+  log("ERC721: _handle_message", topic, body);
+
+  val args = list<gtv>.from_gtv(body);
+  if (args.size() != 2) {
+    return;
+  }
+
+  val type = try_call(text.from_gtv(args[0], *));
+  if (type == null) {
+    return;
+  }
+
+  val data = args[1];
+
+  when (type) {
+    MINT_MESSAGE_TYPE -> {
+      val mint_msg = try_call(mint_message.from_gtv(data, *));
+      if (mint_msg != null) {
+        _validate_event_topic(topic, mint_msg.erc721_id.chain, mint_msg.erc721_id.contract);
+        _handle_mint(sender, mint_msg);
+        return;
+      }
+    }
+    TRANSFER_MESSAGE_TYPE -> {
+      val transfer_msg = try_call(transfer_message.from_gtv(data, *));
+      if (transfer_msg != null) {
+        _handle_transfer(sender, transfer_msg);
+        return;
+      }
+    }
+  }
+}
+
+function _validate_event_topic(topic: text, chain: name, contract: byte_array) {
+  val expected_topic = "%s_%s_%s".format(EVENT_PREFIX, chain.lower_case(), contract.to_hex().lower_case());
+  require(topic == expected_topic, "Invalid event topic");
+}
+
+function _handle_mint(sender: byte_array, msg: mint_message) {
+  val existing = erc721 @? { .chain == msg.erc721_id.chain, .contract == msg.erc721_id.contract, .token_id == msg.erc721_id.token_id };
+  if (existing != null) return;
+
+  val token = yours._create_token(
+    msg.id,
+    yours.token_type.external,
+    msg.properties,
+    sender,
+    0
+  );
+
+  val account = _ensure_evm_account(msg.to);
+
+  create erc721 (
+    token,
+    owner = account,
+    chain = msg.erc721_id.chain,
+    contract = msg.erc721_id.contract,
+    token_id = msg.erc721_id.token_id
+  );
+
+  yours.log_transfer_history_entry(
+    token,
+    account,
+    amount = 1,
+    type = yours.transfer_type.external_received
+  );
+}
+
+function _handle_transfer(sender: byte_array, msg: transfer_message) {
+  val existing = erc721 @? { .token.id == msg.id };
+  if (existing == null) return;
+
+  val from = _ensure_evm_account(msg.from);
+  val to = _ensure_evm_account(msg.to);
+
+  update existing ( .owner = to );
+
+  val token = existing.token;
+  yours.log_transfer_history_entry(token, from, 1, yours.transfer_type.external_sent);
+  yours.log_transfer_history_entry(token, to, 1, yours.transfer_type.external_received);
+}
+
+function _serialize_token_id(chain: name, contract: byte_array, token_id: big_integer): byte_array {
+  return chain.lower_case().to_bytes() + contract + token_id.to_bytes();
+}

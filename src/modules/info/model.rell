@@ -1,0 +1,4 @@
+entity token_info {
+  key yours.token;
+  mutable name: text;
+}

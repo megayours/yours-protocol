@@ -1,0 +1,15 @@
+# Chromia
+build
+logs
+.chromia
+
+# Store only our own libraries
+src/lib/*
+!src/lib/yours
+!src/lib/erc1155
+
+# OS files
+.DS_STORE
+
+# Node
+node_modules

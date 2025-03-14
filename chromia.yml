@@ -1,0 +1,79 @@
+definitions:
+  - &sender
+    gtx:
+      modules:
+        - 'net.postchain.d1.icmf.IcmfSenderGTXModule'
+  - &receiver
+    gtx:
+      modules:
+        - 'net.postchain.d1.icmf.IcmfReceiverGTXModule'
+    sync_ext:
+      - 'net.postchain.d1.icmf.IcmfReceiverSynchronizationInfrastructureExtension'
+
+blockchains:
+  yours:
+    type: library
+    module: lib.yours
+  example_dapp1:
+    module: examples.dapp1
+    config:
+      blockstrategy:
+        maxblocktime: 1000
+      <<: *sender
+    moduleArgs:
+      examples.dapp1.gamma_simulator:
+        oracle_pubkey: 03af5096bc0f9e0c948121e7bf94a5ccd964a11b596280b151851f02de38d6ba02
+      lib.ft4.core.accounts:
+        rate_limit:
+          active: false
+
+  example_dapp2:
+    module: examples.dapp2
+    config:
+      blockstrategy:
+        maxblocktime: 1000
+      <<: *receiver
+      icmf:
+        receiver:
+          local:
+            - bc-rid: null
+              topic: 'L_yours_erc721_ethereum_ab00000000000000000000000000000000000000'
+            - bc-rid: null
+              topic: 'L_yours_erc20_ethereum_ab11111111111111111111111111111111111111'
+    moduleArgs:
+      lib.ft4.core.accounts:
+        rate_limit:
+          active: false
+
+test:
+  modules:
+    - tests
+
+libs:
+  ft4:
+    registry: https://gitlab.com/chromaway/ft4-lib.git
+    path: rell/src/lib/ft4
+    tagOrBranch: v1.0.0r
+    rid: x"FA487D75E63B6B58381F8D71E0700E69BEDEAD3A57D1E6C1A9ABB149FAC9E65F"
+    insecure: false
+  iccf:
+    registry: https://gitlab.com/chromaway/core/directory-chain
+    path: src/iccf
+    tagOrBranch: 1.32.2
+    rid: x"1D567580C717B91D2F188A4D786DB1D41501086B155A68303661D25364314A4D"
+    insecure: false
+  icmf:
+    registry: https://gitlab.com/chromaway/core/directory-chain
+    path: src/messaging/icmf
+    tagOrBranch: 1.32.2
+    rid: x"19D6BC28D527E6D2239843608486A84F44EDCD244E253616F13D1C65893F35F6"
+
+compile:
+  rellVersion: 0.13.14
+
+database:
+  schema: yours
+  host: postgres
+  username: postgres
+  password: postgres
+  database: postgres

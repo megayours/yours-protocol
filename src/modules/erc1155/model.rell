@@ -1,0 +1,19 @@
+entity token_name {
+  key yours.token;
+  mutable name: text;
+}
+
+entity token_description {
+  key yours.token;
+  mutable description: text;
+}
+
+entity token_image {
+  key yours.token;
+  mutable image: text;
+}
+
+entity token_animation {
+  key yours.token;
+  mutable animation: text;
+}

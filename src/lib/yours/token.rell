@@ -1,0 +1,199 @@
+
+/**
+ * Define a new token with a specific ID.
+ *
+ * @param id the unique id
+ * @param token_type the type of the token
+ * @param properties the properties of the token
+ */
+function create_token(id: byte_array, token_type: token_type, properties: map<text, map<text, gtv>>, decimals: integer): token {
+  return _create_token(id, token_type, properties, chain_context.blockchain_rid, decimals);
+}
+
+/**
+ * Attach modules to a token.
+ *
+ * @param token to attach the modules to
+ * @param modules to attach
+ */
+function attach_modules(token, modules: list<name>) {
+  for (m in modules) {
+    attach_module(token, m);
+  }
+}
+
+/**
+ * Attach a module to a token. Making it eligible to be part of the token's metadata.
+ *
+ * @param token to attach the module to
+ * @param module_name to attach
+ */
+function attach_module(token, module_name: name) {
+  val modules = module_name.split(".");
+  val name = modules[modules.size() - 1];
+
+  if (token_module @? { token, name } == null) {
+    create token_module ( token, name );
+  }
+}
+
+/**
+ * Check if a token has a module.
+ *
+ * @param token to check
+ * @param name of the module
+ */
+function has_module(token, name): boolean {
+  return token_module @? { token, name } != null;
+}
+
+/**
+ * Mint tokens to a specific account.
+ *
+ * @param token the token to mint from
+ * @param info the information for the mint
+ */
+function mint(token, info: balance_info) {
+  require(token.issuing_chain == chain_context.blockchain_rid, "This chain does not have permission to mint this token");
+  require(token.type != token_type.external, "External tokens cannot be directly minted");
+  _mint(token, info, null);
+}
+
+function _mint(token, info: balance_info, crosschain_source_blockchain_rid: byte_array?) {
+  before_mint(token, info.account, info.amount);
+  _mint_balance(token, info.account, info.amount, crosschain_source_blockchain_rid);
+  after_mint(token, info.account, info.amount);
+}
+
+/**
+ * Burn tokens from a specific account.
+ *
+ * @param token the token to burn from
+ * @param info the information for the burn
+ */
+function burn(token, info: balance_info) {
+  require(token.type != token_type.external, "External tokens cannot be directly burned");
+  _burn(token, info, null);
+}
+
+function _burn(token, info: balance_info, crosschain_target_blockchain_rid: byte_array?) {
+  before_burn(token, info.account, info.amount);
+  _burn_balance(token, info.account, info.amount, crosschain_target_blockchain_rid);
+  after_burn(token, info.account, info.amount);
+}
+
+/**
+ * Transfer tokens from one account to another.
+ *
+ * @param token to transfer
+ * @param info the information for the transfer
+ */
+function transfer(token, info: transfer_info) {
+  require(token.type == token_type.yours, "Only tokens of type yours can be transferred");
+  _transfer(token, info, null);
+}
+
+/**
+ * Private function to transfer tokens, this function does not perform any checks.
+ *
+ * @param token to transfer
+ * @param info the information for the transfer
+ */
+function _transfer(token, info: transfer_info, blockchain_rid: byte_array?) {
+  before_transfer(token, info.from, info.to, info.amount);
+  _burn_balance(token, info.from, info.amount, blockchain_rid);
+  _mint_balance(token, info.to, info.amount, blockchain_rid);
+  after_transfer(token, info.from, info.to, info.amount);
+}
+
+/**
+ * Get a token by its unique id.
+ *
+ * @param id the unique id
+ * @param issuing_chain the issuing chain
+ */
+function get_token(id: byte_array, issuing_chain: byte_array = chain_context.blockchain_rid): token? {
+  return token @? { .id == id, .issuing_chain == issuing_chain };
+}
+
+/**
+ * An active token is one where there exists a balance for the token.
+ *
+ * @param id the unique id
+ * @param issuing_chain the issuing chain
+ */
+function get_active_token(id: byte_array, issuing_chain: byte_array = chain_context.blockchain_rid): token? {
+  return token_balance @? { .token.id == id, .token.issuing_chain == issuing_chain } ( .token ) limit 1;
+}
+
+/**
+ * Get the balance of a token for a specific account.
+ *
+ * @param token the token to get the balance for
+ * @param account the account to get the balance for
+ */
+function get_balance(token, account: ft4.accounts.account): big_integer {
+  return token_balance @? { token, account } ( .amount ) ?: 0L;
+}
+
+function _create_token(
+  id: byte_array,
+  token_type: token_type,
+  properties: map<text, map<text, gtv>>,
+  issuing_chain: byte_array,
+  decimals: integer
+) {
+  val token = create token (
+    id,
+    issuing_chain,
+    token_type,
+    decimals
+  );
+
+  create imported_properties ( token, data = properties.to_gtv_pretty().to_bytes() );
+
+  for (module_name in properties.keys()) {
+    val _properties = properties.get(module_name);
+    receive_properties(token, module_name, _properties);
+  }
+
+  create visited_blockchain ( token, chain_context.blockchain_rid );
+  return token;
+}
+
+function _get_token_balance(token, ft4.accounts.account) {
+  return token_balance @? { token, account };
+}
+
+function _mint_balance(token, ft4.accounts.account, amount: big_integer, issuing_chain: byte_array?) {
+  val receiver_balance = _get_token_balance(token, account);
+  if (receiver_balance == null) {
+    create token_balance ( token, account, amount );
+  } else {
+    receiver_balance.amount += amount;
+  }
+
+  if (issuing_chain != null) {
+    log_crosschain_transfer_history_entry(token, account, amount, transfer_type.received, issuing_chain);
+  } else {
+    log_transfer_history_entry(token, account, amount, transfer_type.received);
+  }
+}
+
+function _burn_balance(token, ft4.accounts.account, amount: big_integer, issuing_chain: byte_array?) {
+  val token_balance = require(_get_token_balance(token, account), "Insufficient balance of %s, no balance found for: %s".format(token.id.to_hex(), account.id.to_hex()));
+  val new_amount = token_balance.amount - amount;
+  require(new_amount >= 0L, "Insufficient balance of %s %s/%s".format(token.id.to_hex(), token_balance.amount, amount));
+
+  if (new_amount == 0) {
+    delete token_balance;
+  } else {
+    token_balance.amount = new_amount;
+  }
+
+  if (issuing_chain != null) {
+    log_crosschain_transfer_history_entry(token, account, amount, transfer_type.sent, issuing_chain);
+  } else {
+    log_transfer_history_entry(token, account, amount, transfer_type.sent);
+  }
+}

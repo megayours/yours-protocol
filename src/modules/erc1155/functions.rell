@@ -1,0 +1,124 @@
+/**
+ * Attach the ERC1155 module to a token.
+ * 
+ * @param token to attach the module to
+ */
+function attach(token: yours.token) {
+  yours.attach_module(token, MODULE_NAME);
+}
+
+/**
+ * Set the name for a token.
+ * 
+ * @param token to set the name for
+ * @param name to set for the token
+ * @return the token_name object
+ */
+function set_name(token: yours.token, name: text?) {
+  val token_name = token_name @? { token };
+  val existing_name = token_name?.name;
+
+  if (existing_name == name) return token_name;
+  if (token_name != null and existing_name != name) {
+    delete token_name;
+  }
+
+  if (name != null) {
+    return create token_name ( token, name );
+  }
+  return null;
+}
+
+/**
+ * Set the description for a token.
+ * 
+ * @param token to set the description for
+ * @param description to set for the token
+ * @return the token_description object
+ */
+function set_description(token: yours.token, description: text?) {
+  val token_description = token_description @? { token };
+  val existing_description = token_description?.description;
+
+  if (existing_description == description) return token_description;
+  if (token_description != null and existing_description != description) {
+    delete token_description;
+  }
+
+  if (description != null) {
+    return create token_description ( token, description );
+  }
+  return null;
+}
+
+/**
+ * Set the image for a token.
+ * 
+ * @param token to set the image for
+ * @param image to set for the token
+ * @return the token_image object
+ */
+function set_image(token: yours.token, image: text?) {
+  val token_image = token_image @? { token };
+  val existing_image = token_image?.image;
+
+  if (existing_image == image) return token_image;
+  if (token_image != null and existing_image != image) {
+    delete token_image;
+  }
+
+  if (image != null) {
+    return create token_image ( token, image );
+  }
+  return null;
+}
+
+/**
+ * Set the animation URL for a token.
+ * 
+ * @param token to set the animation URL for
+ * @param animation to set for the token
+ * @return the token_animation object
+ */
+function set_animation(token: yours.token, animation: text?) {
+  val token_animation = token_animation @? { token };
+  val existing_animation = token_animation?.animation;
+
+  if (existing_animation == animation) return token_animation;
+  if (token_animation != null and existing_animation != animation) {
+    delete token_animation;
+  }
+
+  if (animation != null) {
+    return create token_animation ( token, animation );
+  }
+  return null;
+}
+
+/**
+ * Get the metadata for a token in the form of the ERC1155 Metadata Standard.
+ * 
+ * @param token to get the metadata for
+ * @return metadata_dto the metadata for the token
+ */
+function get_metadata(token: yours.token): metadata_dto {
+  val yours_metadata = yours.get_metadata(token);
+
+  yours_metadata.properties.remove_or_null("name");
+  yours_metadata.properties.remove_or_null("description");
+  yours_metadata.properties.remove_or_null("image");
+  yours_metadata.properties.remove_or_null("animation_url");
+
+  val name = token_name @? { token } ( $.name );
+  val description = token_description @? { token } ( $.description );
+  val image = token_image @? { token } ( $.image );
+  val animation_url = token_animation @? { token } ( $.animation );
+
+  return metadata_dto(
+    name = name ?: "",
+    properties = yours_metadata.properties,
+    description = description ?: "",
+    image = image ?: "",
+    animation_url = animation_url ?: ""
+  );
+}

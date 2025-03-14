@@ -1,0 +1,2 @@
+@extendable
+function properties_handled(yours.token, properties: map<text, gtv>) { }

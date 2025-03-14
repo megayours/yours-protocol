@@ -1,0 +1,26 @@
+struct erc20_id {
+  chain: name;
+  contract: byte_array;
+}
+
+struct properties {
+  name: text;
+  symbol: text;
+  decimals: integer;
+}
+
+struct mint_message {
+  erc20_id: erc20_id;
+  name: text;
+  symbol: text;
+  decimals: integer;
+  to: byte_array;
+  amount: big_integer;
+}
+
+struct transfer_message {
+  erc20_id: erc20_id;
+  from: byte_array;
+  to: byte_array;
+  amount: big_integer;
+}

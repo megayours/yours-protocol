@@ -1,0 +1,27 @@
+val MODULE_NAME = "shared";
+
+@extend(yours.receive_properties)
+function handle_properties(yours.token, module_name: name, properties: map<text, gtv>) {
+  if (module_name == MODULE_NAME) {
+    yours.attach_module(token, module_name);
+    val times_bridged = times_bridged @? { token };
+    val times_bridged_property = try_call(integer.from_gtv(properties.get_or_default("times_bridged", integer(0).to_gtv()), *)) ?: 0;
+    if (times_bridged == null) {
+      create times_bridged ( token = token, amount = times_bridged_property + 1 );
+    } else {
+      times_bridged.amount = times_bridged_property + 1;
+    }
+  }
+}
+
+@extend(yours.provide_properties)
+function populate_metadata(yours.token, modules: set<name>): map<text, map<text, gtv>> {
+  val properties = map<text, gtv>();
+  if (not modules.contains(MODULE_NAME)) return yours.provide_module_properties(MODULE_NAME, properties);
+
+  val times_bridged = times_bridged @? { token };
+  if (times_bridged == null) return yours.provide_module_properties(MODULE_NAME, properties);
+
+  properties.put("times_bridged", times_bridged.amount.to_gtv());
+  return yours.provide_module_properties(MODULE_NAME, properties);
+}

@@ -1,0 +1,96 @@
+operation emit_erc721_mint(
+  chain: name,
+  contract: byte_array,
+  token_id: big_integer,
+  _properties: json,
+  to: byte_array,
+  amount: big_integer
+) {
+  val properties = map<text, map<text, gtv>>();
+  properties.put("erc721", map<text, gtv>.from_gtv(gtv.from_json(_properties)));
+  val msg = erc721
+    .mint_message(// let Gamma generate the id to be able to support multiple chains with different structures later
+      id = erc721._serialize_token_id(chain, contract, token_id),
+      erc721_id = erc721.erc721_id(chain, contract, token_id),
+      to,
+      properties
+    );
+  val mint_topic = _format_erc721_topic(chain, contract);
+  log("emitting mint message on topic %s:".format(mint_topic), msg);
+  send_message(mint_topic, [erc721.MINT_MESSAGE_TYPE.to_gtv(), msg.to_gtv()].to_gtv());
+
+  // Mint on our chain
+  erc721._handle_mint(chain_context.blockchain_rid, msg);
+  val token = erc721.erc721 @ { .token.id == msg.id } ( .token );
+  val account = erc721._ensure_evm_account(msg.to);
+  yours._mint(token, yours.balance_info(account, amount), null);
+}
+
+operation emit_erc721_transfer(chain: name, contract: byte_array, token_id: big_integer, from: byte_array, to: byte_array, amount: big_integer) {
+  val id = erc721.erc721 @? { .chain == chain, .contract == contract, .token_id == token_id } ( .token.id );
+  if (id == null) return;
+  val msg = erc721
+    .transfer_message(
+      id,
+      from,
+      to
+    );
+  val topic = _format_erc721_topic(chain, contract);
+  log("emitting transfer message on topic %s:".format(topic), msg);
+  send_message(topic, [erc721.TRANSFER_MESSAGE_TYPE.to_gtv(), msg.to_gtv()].to_gtv());
+
+  erc721._handle_transfer(chain_context.blockchain_rid, msg);
+}
+
+operation emit_erc20_mint(chain: name, contract: byte_array, name: text, symbol: text, decimals: integer, to: byte_array, amount: big_integer) {
+  val msg = erc20.mint_message(
+    erc20_id = erc20.erc20_id(chain, contract),
+    name = name,
+    symbol = symbol,
+    decimals = decimals,
+    to = to,
+    amount = amount
+  );
+  val topic = _format_erc20_topic(chain, contract);
+  log("emitting mint message on topic %s:".format(topic), msg);
+  send_message(topic, [erc20.MINT_MESSAGE_TYPE.to_gtv(), msg.to_gtv()].to_gtv());
+
+  // Mint on our chain
+  erc20._handle_mint(chain_context.blockchain_rid, msg);
+  val account = erc20._ensure_evm_account(msg.to);
+  val token = erc20.erc20_balance @ { .erc20.chain == chain.lower_case(), .erc20.contract == contract, account } ( .token );
+  log("minting %s %s to %s".format(token.id.to_hex(), amount, account.id.to_hex()));
+  yours._mint(token, yours.balance_info(account, amount = 1), null);
+}
+
+operation emit_erc20_transfer(chain: name, contract: byte_array, from: byte_array, to: byte_array, amount: big_integer) {
+  val msg = erc20.transfer_message(
+    erc20_id = erc20.erc20_id(chain, contract),
+    from = from,
+    to = to,
+    amount = amount
+  );
+  val topic = _format_erc20_topic(chain, contract);
+  log("emitting transfer message on topic %s:".format(topic), msg);
+  send_message(topic, [erc20.TRANSFER_MESSAGE_TYPE.to_gtv(), msg.to_gtv()].to_gtv());
+
+  erc20._handle_transfer(chain_context.blockchain_rid, msg);
+}
+
+function _format_erc721_topic(chain: name, contract: byte_array) {
+  return "%s_%s_%s"
+    .format(
+      erc721.EVENT_PREFIX,
+      chain.lower_case(),
+      contract.to_hex().lower_case()
+    );
+}
+
+function _format_erc20_topic(chain: name, contract: byte_array) {
+  return "%s_%s_%s"
+    .format(
+      erc20.EVENT_PREFIX,
+      chain.lower_case(),
+      contract.to_hex().lower_case()
+    );
+}

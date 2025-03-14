@@ -1,0 +1,48 @@
+/**
+ * A single token's metadata. An extension of the ERC1155 Metadata standard.
+ * 
+ * Incomining should be used as operation input since map<text, gtv> is not serializable
+ * without losing the name of the nested properties.
+ */
+struct token_metadata_incoming {
+  properties: gtv;
+  yours: yours_metadata;
+}
+
+/**
+ * A single token's metadata. An extension of the ERC1155 Metadata standard.
+ * 
+ * Outgoing should be used as query output in order to preserve the name of the nested properties.
+ */
+struct token_metadata_outgoing {
+  properties: map<text, map<text, gtv>>;
+  yours: yours_metadata;
+}
+
+/**
+ * Yours specific metadata.
+ */
+struct yours_metadata {
+  issuing_chain: byte_array;
+  decimals: integer;
+  modules: list<name>;
+  type: name;
+  blockchains: list<byte_array>;
+}
+
+/**
+ * The specification for a balance mutation.
+ */
+struct balance_info {
+  account: ft4.accounts.account;
+  amount: big_integer;
+}
+
+/**
+ * The specification for a transfer.
+ */
+struct transfer_info {
+  from: ft4.accounts.account;
+  to: ft4.accounts.account;
+  amount: big_integer;
+}

@@ -1,0 +1,37 @@
+@extend(yours.receive_properties)
+function (yours.token, module_name: name, properties: map<text, gtv>) {
+  if (module_name != MODULE_NAME) return;
+
+  if (properties.contains("name")) {
+    set_name(token, text.from_gtv(properties["name"]));
+  }
+  if (properties.contains("description")) {
+    set_description(token, text.from_gtv(properties["description"]));
+  }
+  if (properties.contains("image")) {
+    set_image(token, text.from_gtv(properties["image"]));
+  }
+  if (properties.contains("animation_url")) {
+    set_animation(token, text.from_gtv(properties["animation_url"]));
+  }
+}
+
+@extend(yours.provide_properties)
+function (yours.token, modules: set<name>): map<text, map<text, gtv>> {
+  val metadata = map<text, gtv>();
+  if (not modules.contains(MODULE_NAME)) return yours.provide_module_properties(MODULE_NAME, metadata);
+
+  val name = token_name @? { token } ( $.name );
+  if (name != null) metadata.put("name", name.to_gtv());
+
+  val description = token_description @? { token } ( $.description );
+  if (description != null) metadata.put("description", description.to_gtv());
+
+  val image = token_image @? { token } ( $.image );
+  if (image != null) metadata.put("image", image.to_gtv());
+
+  val animation = token_animation @? { token } ( $.animation );
+  if (animation != null) metadata.put("animation_url", animation.to_gtv());
+
+  return yours.provide_module_properties(MODULE_NAME, metadata);
+}

@@ -1,0 +1,23 @@
+struct balance_result {
+  id: byte_array;
+  amount: big_integer;
+}
+
+query balance(chain: name, contract: byte_array, account_id: byte_array): balance_result? {
+  return erc20_balance @? {
+    .erc20.chain == chain.lower_case(),
+    .erc20.contract == contract,
+    .account.id == account_id
+  } ( ( balance_result (id = .token.id, amount = .amount ) ) );
+}
+
+query metadata(chain: name, contract: byte_array) {
+  return erc20 @? {
+    .chain == chain.lower_case(),
+    .contract == contract
+  } (
+    name = .name,
+    symbol = .symbol,
+    decimals = .decimals
+  );
+}

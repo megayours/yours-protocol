@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postchain
+      POSTGRES_PASSWORD: postchain
+      POSTGRES_DB: postchain
+      POSTGRES_INITDB_ARGS: '--encoding=UTF8 --lc-collate=C.UTF-8 --lc-ctype=C.UTF-8'
+
+  chromia:
+    image: registry.gitlab.com/chromaway/core-tools/chromia-cli/chr:latest
+    depends_on:
+      - postgres
+    volumes:
+      - ./:/usr/app
+    ports:
+      - '7740:7740'
+    environment:
+      CHR_DB_URL: jdbc:postgresql://postgres:5432/postchain
+    command:
+      - chr
+      - node
+      - start
+      - --directory-chain-mock

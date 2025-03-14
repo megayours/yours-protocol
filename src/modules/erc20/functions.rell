@@ -1,0 +1,102 @@
+@extend(receive_icmf_message)
+function _handle_message(sender: byte_array, topic: text, body: gtv) {
+  log("ERC20: _handle_message", topic, body);
+  val args = list<gtv>.from_gtv(body);
+  if (args.size() != 2) {
+    return;
+  }
+
+  val type = try_call(text.from_gtv(args[0], *));
+  if (type == null) {
+    return;
+  }
+
+  val data = args[1];
+
+  when (type) {
+    MINT_MESSAGE_TYPE -> {
+      val mint_msg = try_call(mint_message.from_gtv(data, *));
+      if (mint_msg != null) {
+        _validate_event_topic(topic, mint_msg.erc20_id.chain, mint_msg.erc20_id.contract);
+        _handle_mint(sender, mint_msg);
+        return;
+      }
+    }
+    TRANSFER_MESSAGE_TYPE -> {
+      val transfer_msg = try_call(transfer_message.from_gtv(data, *));
+      if (transfer_msg != null) {
+        _handle_transfer(sender, transfer_msg);
+        return;
+      }
+    }
+  }
+}
+
+function _validate_event_topic(topic: text, chain: name, contract: byte_array) {
+  val expected_topic = "%s_%s_%s".format(EVENT_PREFIX, chain.lower_case(), contract.to_hex().lower_case());
+  require(topic == expected_topic, "Invalid event topic");
+}
+
+function _handle_mint(sender: byte_array, msg: mint_message) {
+  var erc20 = erc20 @? { .chain == msg.erc20_id.chain.lower_case(), .contract == msg.erc20_id.contract };
+  if (erc20 == null) {
+    log("creating token", msg);
+    erc20 = create erc20 (
+      chain = msg.erc20_id.chain.lower_case(),
+      contract = msg.erc20_id.contract,
+      name = msg.name,
+      symbol = msg.symbol,
+      decimals = msg.decimals
+    );
+  }
+
+  val account = _ensure_evm_account(msg.to);
+  var balance = erc20_balance @? { erc20, account };
+  if (balance == null) {
+    val token = yours._create_token(
+      id = _serialize_token_id(msg.to, msg.erc20_id.chain, msg.erc20_id.contract),
+      token_type = yours.token_type.external,
+      properties = map<text, map<text, gtv>>(),
+      issuing_chain = sender,
+      decimals = 0
+    );
+    yours.attach_module(token, MODULE_NAME);
+    balance = create erc20_balance ( erc20, account, token, msg.amount );
+
+    yours.log_transfer_history_entry(
+      token,
+      account,
+      amount = msg.amount,
+      type = yours.transfer_type.external_received
+    );
+  } else {
+    balance.amount += msg.amount;
+  }
+}
+
+function _serialize_token_id(account: byte_array, chain: name, contract: byte_array): byte_array {
+  return (account + chain.lower_case().to_bytes() + contract).hash();
+}
+
+function _handle_transfer(sender: byte_array, msg: transfer_message) {
+  val from = _ensure_evm_account(msg.from);
+  val from_balance = erc20_balance @ { .erc20.chain == msg.erc20_id.chain.lower_case( ), .erc20.contract == msg.erc20_id.contract, .account == from };
+  from_balance.amount -= msg.amount;
+
+  val to = _ensure_evm_account(msg.to);
+  val to_balance = erc20_balance @? { .erc20.chain == msg.erc20_id.chain.lower_case(), .erc20.contract == msg.erc20_id.contract, .account == to };
+  if (to_balance == null) {
+    val token = yours._create_token(
+      id = _serialize_token_id(msg.to, msg.erc20_id.chain, msg.erc20_id.contract),
+      token_type = yours.token_type.external,
+      properties = map<text, map<text, gtv>>(),
+      issuing_chain = sender,
+      decimals = 0
+    );
+    yours.attach_module(token, MODULE_NAME);
+    create erc20_balance ( from_balance.erc20, token, to, msg.amount );
+    yours.log_transfer_history_entry(token, to, msg.amount, yours.transfer_type.external_received);
+  } else {
+    to_balance.amount += msg.amount;
+  }
+}

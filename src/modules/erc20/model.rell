@@ -1,0 +1,12 @@
+entity erc20 {
+  key chain: name, contract: byte_array;
+  name;
+  symbol: name;
+  decimals: integer;
+}
+
+entity erc20_balance {
+  key erc20, ft4.accounts.account;
+  key yours.token;
+  mutable amount: big_integer;
+}

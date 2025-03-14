@@ -1,0 +1,114 @@
+
+/**
+ * Allows a caller to hook into outgoing tokens and apply custom logic that has to be executed before.
+ *
+ * @param token to apply the transfer to
+ * @param account to apply the transfer to
+ */
+@extendable
+function before_init_transfer(token, ft4.accounts.account);
+
+/**
+ * Allows a caller to hook into outgoing tokens and apply custom logic that has to be executed after.
+ *
+ * @param token to apply the transfer to
+ * @param account to apply the transfer to
+ */
+@extendable
+function after_init_transfer(token, ft4.accounts.account);
+
+/**
+ * Allows a caller to hook into incoming tokens and apply custom logic for its own storage needs
+ *
+ * @param token to apply the transfer to
+ * @param account the account that is receiving the token
+ */
+@extendable
+function after_apply_transfer(token, ft4.accounts.account) {}
+
+/**
+ * Allows a caller to receive additional properties as well as overriding properties that arrived from cross-chain.
+ *
+ * @param token to apply the transfer to
+ * @param module_name the name of the module that is handling the properties
+ * @param properties the metadata for the transfer
+ */
+@extendable
+function receive_properties(token, module_name: name, properties: map<text, gtv>) {}
+
+/**
+ * Allows a caller to provide additional properties as well as overriding properties that arrived from cross-chain.
+ *
+ * @param token to apply the transfer to
+ * @param modules to populate the metadata with
+ */
+@extendable
+function provide_properties(token, modules: set<name>): map<text, map<text, gtv>>;
+
+/**
+ * Allows a caller to hook into the burn process and apply custom logic that has to be executed before.
+ *
+ * @param token to be burned
+ * @param account the account that is burning the token
+ * @param amount the amount of tokens being burned
+ */
+@extendable
+function before_burn(token, ft4.accounts.account, amount: big_integer) {}
+
+/**
+ * Allows a caller to hook into the burn process and apply custom logic that has to be executed after.
+ *
+ * @param token to be burned
+ * @param account the account that is burning the token
+ * @param amount the amount of tokens being burned
+ */
+@extendable
+function after_burn(token, ft4.accounts.account, amount: big_integer) {}
+
+/**
+ * Allows a caller to hook into the transfer process and apply custom logic that has to be executed before.
+ *
+ * @param token to be transferred
+ * @param from the account the token is being transferred from
+ * @param to the account the token is being transferred to
+ * @param amount the amount of tokens being transferred
+ */
+@extendable
+function before_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: big_integer) {}
+
+/**
+ * Allows a caller to hook into the transfer process and apply custom logic that has to be executed after.
+ *
+ * @param token to be transferred
+ * @param from the account the token is being transferred from
+ * @param to the account the token is being transferred to
+ * @param amount the amount of tokens being transferred
+ */
+@extendable
+function after_transfer(token, from: ft4.accounts.account, to: ft4.accounts.account, amount: big_integer) {}
+
+/**
+ * Allows a caller to hook into the mint process and apply custom logic that has to be executed before.
+ *
+ * @param token to be minted
+ */
+@extendable
+function before_mint(token, ft4.accounts.account, amount: big_integer) {}
+
+/**
+ * Allows a caller to hook into the mint process and apply custom logic that has to be executed after.
+ *
+ * @param token to be minted
+ * @param account the account that is minting the token
+ * @param amount the amount of tokens being minted
+ */
+@extendable
+function after_mint(token, ft4.accounts.account, amount: big_integer) {}
+
+/**
+ * Allows a dapp to allow an oracle transfer.
+ * 
+ * This function should return true if a transfer is allowed, e.g. has been signed by an oracle.
+ */
+@extendable
+function allow_oracle_transfer(): boolean;

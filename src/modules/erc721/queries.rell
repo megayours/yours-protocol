@@ -1,0 +1,28 @@
+query owners_account_ids(chain: name, contract: byte_array, token_id: big_integer, page_size: integer?, page_cursor: text?): paging.paged_result {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = paging.decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val paginated_owners = erc721 @* {
+    .chain == chain,
+    .contract == contract,
+    .token_id == token_id,
+    if (before_rowid??) (.rowid < before_rowid) else true
+  } (
+    paging.pagination_result (
+      data = .owner.id.to_gtv_pretty(),
+      rowid = .rowid
+    )
+  ) limit paging.fetch_data_size(page_size);
+  return paging.make_page(paginated_owners, page_size);
+}
+
+query metadata(chain: name, contract: byte_array, token_id: big_integer) {
+  return erc721 @? {
+    .chain == chain,
+    .contract == contract,
+    .token_id == token_id
+  } ( yours.get_metadata(.token) );
+}

@@ -1,0 +1,7 @@
+struct metadata_dto {
+  name;
+  properties: map<text, map<text, gtv>>;
+  description: text?;
+  image: text?;
+  animation_url: text?;
+}

@@ -1,0 +1,7 @@
+function _json_to_properties(json): map<text, map<text, gtv>> {
+  return map<text, map<text, gtv>>.from_gtv(gtv.from_json(json));
+}
+
+function _gtv_to_properties(gtv: gtv): map<text, map<text, gtv>> {
+  return map<text, map<text, gtv>>.from_gtv(gtv);
+}

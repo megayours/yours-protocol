@@ -1,0 +1,91 @@
+
+/**
+ * Returns the list of all tokens for the given account.
+ *
+ * @param account_id the account id
+ * @param id the token id
+ * @param page_size the page size
+ * @param page_cursor the page cursor
+ * @return The list of all tokens for the given account
+ */
+query get_token_balances(
+  account_id: byte_array?,
+  id: byte_array?,
+  issuing_chain: byte_array?,
+  page_size: integer?,
+  page_cursor: text?
+): paging.paged_result {
+  val paginated_token_balances = get_paginated_balances(
+    account_id = account_id,
+    id = id,
+    issuing_chain = issuing_chain,
+    page_size = page_size,
+    page_cursor = page_cursor
+  );
+  return paging.make_page(paginated_token_balances, page_size);
+}
+
+/**
+ * Returns the balance of the token for the given account by its unique id.
+ *
+ * @param id the id
+ * @param issuing_chain the issuing chain
+ * @param account_id the account id
+ * @return The balance of the token for the given account
+ */
+query balance(account_id: byte_array, id: byte_array, issuing_chain: byte_array?): big_integer {
+  val token = yours.get_active_token(id, issuing_chain ?: chain_context.blockchain_rid);
+  if (token == null) return 0;
+
+  val account = ft4.accounts.account @? { account_id };
+  if (account == null) return 0;
+
+  return yours.get_balance(token, account);
+}
+
+function get_paginated_balances(
+  account_id: byte_array?,
+  id: byte_array?,
+  issuing_chain: byte_array?,
+  page_size: integer?,
+  page_cursor: text?
+) {
+  var before_rowid: rowid? = null;
+  if (page_cursor??) {
+    val cursor = paging.decode_cursor(page_cursor);
+    before_rowid = cursor.before_rowid;
+  }
+
+  val entries = yours.token_balance @* {
+      if (account_id == null) true else .account.id == account_id,
+      if (id == null) true else .token.id == id,
+      if (issuing_chain == null) true else .token.issuing_chain == issuing_chain,
+      if (before_rowid??) (.rowid < before_rowid) else true
+    } ( @sort_desc $ ) limit paging.fetch_data_size(page_size);
+
+  return extract_data_from_token_balance_list(entries) @* { } (
+      paging.pagination_result (
+        data = .data,
+        rowid = .rowid
+      )
+    );
+}
+
+function extract_data_from_token_balance_list(entries: list<yours.token_balance>): list<(data:gtv,rowid:rowid)> {
+  return entries @* { } (
+    data = extract_data_from_token_balance_entry ($).to_gtv_pretty(),
+    rowid = .rowid
+  );
+}
+
+function extract_data_from_token_balance_entry(entry: yours.token_balance) {
+  return (
+    token_balance_dto(
+      id = entry.token.id,
+      issuing_chain = entry.token.issuing_chain,
+      type = entry.token.type.name,
+      amount = entry.amount,
+      account_id = entry.account.id
+    )
+  );
+}

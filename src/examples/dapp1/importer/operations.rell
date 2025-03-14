@@ -1,0 +1,31 @@
+@extend(auth.auth_handler)
+function () = auth.add_auth_handler(
+  flags = []
+);
+
+/**
+ * Defines a token using externally defined metadata. 
+ * 
+ * Normally you would only provide the attributes and let the dapp code define project, collection, modules, etc for extra validation.
+ * We only take this shortcut here to make the test suite a bit easier.
+ */
+operation define(token_id: byte_array, metadata: json, token_type: name = "yours") {
+  auth.authenticate();
+
+  val token = yours.create_token(
+    token_id,
+    yours.token_type.value(token_type),
+    map<text, map<text, gtv>>.from_gtv(gtv.from_json(metadata)),
+    decimals = 0
+  );
+
+  shared.attach(token);
+  tracker.attach(token);
+}
+
+operation mint(token_id: byte_array, amount: big_integer) {
+  val account = auth.authenticate();
+
+  val token = require(yours.get_token(token_id));
+  yours.mint(token, yours.balance_info(account, amount = amount));
+}

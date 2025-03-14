@@ -1,0 +1,12 @@
+@mount("erc20")
+module;
+
+import lib.yours;
+
+namespace ft4 {
+  import lib.ft4.accounts;
+}
+
+import lib.icmf.receiver. { receive_icmf_message };
+
+import modules.paging;

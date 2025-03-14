@@ -1,0 +1,22 @@
+val MINT_MESSAGE_TYPE = "erc721.mint";
+val METADATA_UPDATED_MESSAGE_TYPE = "erc721.metadata_updated";
+val TRANSFER_MESSAGE_TYPE = "erc721.transfer";
+
+struct erc721_id {
+  chain: name;
+  contract: byte_array;
+  token_id: big_integer;
+}
+
+struct mint_message {
+  id: byte_array;
+  erc721_id;
+  to: byte_array;
+  properties: map<text, map<text, gtv>>;
+}
+
+struct transfer_message {
+  id: byte_array;
+  from: byte_array;
+  to: byte_array;
+}

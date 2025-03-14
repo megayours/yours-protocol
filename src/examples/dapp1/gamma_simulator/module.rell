@@ -1,0 +1,14 @@
+@mount("gamma_simulator") module;
+
+namespace yours {
+  import lib.yours.*;
+}
+
+import lib.icmf.{ send_message };
+
+import modules.erc721;
+import modules.erc20;
+
+struct module_args {
+  oracle_pubkey: pubkey;
+}

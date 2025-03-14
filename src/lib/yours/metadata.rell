@@ -1,0 +1,86 @@
+
+/**
+ * Provide the properties for a specific module.
+ * 
+ * @param name The name of the module.
+ * @param properties The properties to provide for the module.
+ * @return A map of the module name to the properties.
+ */
+function provide_module_properties(name, properties: map<text, gtv>): map<text, map<text, gtv>> {
+  val module_properties = map<text, map<text, gtv>>();
+  module_properties.put(name, properties);
+  return module_properties;
+}
+
+/**
+ * Get the metadata for a specific token. This function will gather metadata from the token's base metadata,
+ * as well as the token's modules on this chain that supports it.
+ *
+ * @param token The token to get the metadata for.
+ * @return token_metadata_outgoing The metadata for the token.
+ */
+function get_metadata(token): token_metadata_outgoing {
+  val base_metadata = imported_properties @? {
+    token
+  } ( _gtv_to_properties (gtv.from_bytes($.data)) ) ?: map<text, map<text, gtv>>();
+  val properties: map<text, map<text, gtv>> = provide_properties(token, set(token_module @* { token } ( .module_name )));
+  for (m_key in properties.keys()) {
+    val m_map = properties.get(m_key);
+    if (m_map.size() == 0) continue;
+    base_metadata.put(m_key, m_map);
+  }
+
+  return token_metadata_outgoing(
+    properties = base_metadata,
+    yours = yours_metadata(
+      issuing_chain = token.issuing_chain,
+      type = token.type.name,
+      modules = token_module @* { token } ( .module_name ),
+      blockchains = visited_blockchain @* { token } ( .blockchain_rid ),
+      decimals = token.decimals
+    )
+  );
+}
+
+function _import_attributes(token: token, inc_attributes: map<text, gtv>) {
+  // Normalize ERC721 sub-attributes
+  val sub_attributes = inc_attributes.get_or_null("attributes");
+  if (sub_attributes != null) {
+    val array_attributes = try_call(list<gtv>.from_gtv(sub_attributes, *));
+    if (array_attributes != null) {
+      for (attribute in array_attributes) {
+        val t_attribute = try_call(map<text, gtv>.from_gtv(attribute, *));
+        if (t_attribute != null) {
+          val nkey = t_attribute.get_or_null("trait_type");
+          val nvalue = t_attribute.get_or_null("value");
+          if (nkey != null and nvalue != null) {
+            inc_attributes.put(text.from_gtv(nkey), nvalue);
+          }
+        }
+      }
+    }
+
+    inc_attributes.remove("attributes");
+  }
+
+  // Normalize ERC1155 sub-attributes
+  val sub_properties = inc_attributes.get_or_null("properties");
+  if (sub_properties != null) {
+    val map_properties = try_call(map<text, gtv>.from_gtv(sub_properties, *));
+    if (map_properties != null) {
+      for ((mkey, value) in map_properties) {
+        inc_attributes.put(mkey, value);
+      }
+    }
+
+    inc_attributes.remove("properties");
+  }
+
+  val attributes = inc_attributes.to_gtv_pretty().to_bytes();
+  val imported_attributes = imported_properties @? { token };
+  if (imported_attributes == null) {
+    create imported_properties ( token, data = attributes );
+  } else {
+    imported_attributes.data = attributes;
+  }
+}

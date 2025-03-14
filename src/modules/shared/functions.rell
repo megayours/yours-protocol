@@ -1,0 +1,4 @@
+function attach(yours.token) {
+  yours.attach_module(token, MODULE_NAME);
+  create times_bridged ( token = token, amount = 0 );
+}

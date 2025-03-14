@@ -1,0 +1,26 @@
+
+/**
+ * Returns the metadata of the token by its uid.
+ *
+ * @param id the id of the token
+ * @param issuing_chain the issuing chain
+ * @return The metadata of the token in JSON format in order to handle generic attributes values.
+ */
+query metadata(id: byte_array, issuing_chain: byte_array?): yours.token_metadata_outgoing? {
+  val token = yours.get_token(id, issuing_chain ?: chain_context.blockchain_rid);
+  return if (token != null) yours.get_metadata(token) else null;
+}
+
+/**
+ * Returns the metadata of the active token by its uid.
+ * 
+ * Returns null if the token is not active.
+ *
+ * @param id the id of the token
+ * @param issuing_chain the issuing chain
+ * @return The metadata of the token in JSON format in order to handle generic attributes values.
+ */
+query active_metadata(id: byte_array, issuing_chain: byte_array?): yours.token_metadata_outgoing? {
+  val token = yours.get_active_token(id, issuing_chain ?: chain_context.blockchain_rid);
+  return if (token != null) yours.get_metadata(token) else null;
+}

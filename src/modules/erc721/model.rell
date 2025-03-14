@@ -1,0 +1,9 @@
+entity erc721 {
+  yours.token;
+  mutable owner: ft4.accounts.account;
+  chain: name;
+  contract: byte_array;
+  token_id: big_integer;
+  key token, owner;
+  key chain, contract, token_id;
+}

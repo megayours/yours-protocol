@@ -1,0 +1,15 @@
+/**
+ * Returns the token for the given id and issuing chain.
+ *
+ * @param id the id
+ * @param issuing_chain the issuing chain
+ * @return The token info for the given id and issuing chain
+ */
+query get_token_info(id: byte_array, issuing_chain: byte_array?): token_dto? {
+  val token = yours.get_active_token(id, issuing_chain ?: chain_context.blockchain_rid);
+  return if (token != null) token_dto(
+    id = token.id,
+    issuing_chain = token.issuing_chain,
+    type = token.type
+  ) else null;
+}

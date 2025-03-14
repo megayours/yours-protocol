@@ -1,0 +1,377 @@
+@extend(ft4.auth.auth_handler)
+function () = ft4.auth.add_overridable_auth_handler(
+    scope = rell.meta(init_transfer).mount_name,
+    flags = ["T"]
+  );
+
+/**
+ * This operation initializes the transfer metadata for a token transfer.
+ * It is executed on the source blockchain that you want to transfer the
+ * token away from.
+ *
+ * It is an extension of the FT4 ICCF flow and the purpose is to
+ * pass (the correct) metadata of tokens to the target chain.
+ *
+ * @param metadata The metadata to be initialized for the transfer. Expected to be in `gtv_pretty` format.
+ */
+operation init_transfer(
+  target_blockchain_rid: byte_array,
+  recipient_id: byte_array,
+  id: byte_array,
+  issuing_chain: byte_array,
+  amount: big_integer,
+  metadata: yours.token_metadata_incoming
+) {
+  log("init_transfer", id.to_hex());
+  val account = ft4.auth.authenticate();
+  val token = require(_get_init_transfer_token(id, issuing_chain, metadata), "Token Not Found");
+  _init_transfer(target_blockchain_rid, recipient_id, token, amount, metadata, account);
+}
+
+operation init_oracle_transfer(
+  account_id: byte_array,
+  target_blockchain_rid: byte_array,
+  recipient_id: byte_array,
+  id: byte_array,
+  issuing_chain: byte_array,
+  amount: big_integer,
+  metadata: yours.token_metadata_incoming
+) {
+  require(yours.allow_oracle_transfer(), "Oracle transfer not authorized");
+  val account = ft4.accounts.account @ { account_id };
+  val token = require(_get_init_transfer_token(id, issuing_chain, metadata), "Token Not Found");
+  require(token.type == yours.token_type.external, "Only external tokens can be transferred crosschain via an oracle");
+  _init_transfer(target_blockchain_rid, recipient_id, token, amount, metadata, account);
+}
+
+function _get_init_transfer_token(id: byte_array, issuing_chain: byte_array, metadata: yours.token_metadata_incoming) {
+  return yours.get_token(id, issuing_chain);
+}
+
+function _init_transfer(
+  target_blockchain_rid: byte_array,
+  recipient_id: byte_array,
+  token: yours.token,
+  amount: big_integer,
+  metadata: yours.token_metadata_incoming,
+  account: ft4.accounts.account
+) {
+  val balance = yours.get_balance(token, account);
+  require(balance >= amount, "Insufficient balance %s/%s for account %s".format(balance, amount, account.id.to_hex()));
+
+  val existing_metadata = yours.get_metadata(token);
+  require(metadata.yours.issuing_chain == token.issuing_chain, "Invalid issuing chain");
+  _validate_metadata(metadata, existing_metadata);
+
+  yours.before_init_transfer(token, account);
+
+  yours._burn(token, yours.balance_info(account, amount), target_blockchain_rid);
+
+  create pending_transfer (
+    sender = account,
+    transaction = op_context.transaction,
+    op_index = op_context.op_index
+  );
+
+  yours.after_init_transfer(token, account);
+}
+
+function _validate_metadata(incoming: yours.token_metadata_incoming, outgoing: yours.token_metadata_outgoing) {
+  _validate_properties(incoming, outgoing);
+}
+
+function _validate_properties(incoming: yours.token_metadata_incoming, outgoing: yours.token_metadata_outgoing) {
+  val incoming_properties = yours._gtv_to_properties(incoming.properties);
+  val outgoing_properties = outgoing.properties;
+  for (name in incoming_properties.keys()) {
+    val incoming_value = incoming_properties[name];
+    val outgoing_value = outgoing_properties[name];
+
+    if (incoming_value != outgoing_value) {
+      require(incoming_value == outgoing_value, "Unexpected properties for module %s".format(name));
+    }
+  }
+}
+
+/**
+ * This operation applies the transfer metadata to a token transfer.
+ * It is executed against the target blockchain where you want the
+ * token to be imported into.
+ */
+operation apply_transfer(
+  init_transfer_tx: gtx_transaction,
+  init_tx_op_index: integer
+) {
+  val details = _validate_apply_transfer(
+    init_transfer_tx,
+    init_tx_op_index
+  );
+
+  require(details.target_blockchain_rid == chain_context.blockchain_rid, "Invalid target blockchain");
+
+  // Add transfer to applied transfers table so that it cannot be applied more than once
+  create applied_transfers (
+    init_tx_rid = details.tx_rid,
+    init_op_index = init_tx_op_index,
+    transaction = op_context.transaction,
+    op_index = op_context.op_index
+  );
+
+  val transferred_metadata = details.metadata;
+  var token = yours.get_token(details.id, details.issuing_chain);
+
+  val inc_token_type = yours.token_type.value(transferred_metadata.yours.type);
+  require(
+    not details.oracle_transfer or inc_token_type == yours.token_type.external,
+    "Only external tokens can be transferred crosschain via an oracle"
+  );
+
+  if (token == null) {
+    require(inc_token_type == yours.token_type.yours, "Only a yours token may be created during a crosschain transfer");
+    val module_properties = require(
+      try_call(map<text, map<text, gtv>>.from_gtv(transferred_metadata.properties, *)),
+      "Invalid properties format: %s".format(transferred_metadata.properties)
+    );
+    token = yours._create_token(
+      details.id,
+      inc_token_type,
+      module_properties,
+      details.issuing_chain,
+      transferred_metadata.yours.decimals
+    );
+  } else {
+    if (token.type != inc_token_type) {
+      token.type = inc_token_type;
+    }
+
+    _apply_properties(token, transferred_metadata);
+
+    val module_properties = yours._gtv_to_properties(transferred_metadata.properties);
+    for (module_name in transferred_metadata.yours.modules) {
+      val properties = module_properties.get_or_null(module_name);
+      if (properties != null) {
+        yours.receive_properties(token, module_name, properties);
+      }
+    }
+  }
+
+  _apply_transfer(
+    details.recipient_id,
+    token,
+    details.amount,
+    details.source_blockchain_rid,
+    transferred_metadata
+  );
+
+  _ensure_visited_blockchains(token, transferred_metadata.yours.blockchains);
+}
+
+/**
+ * This operation completes the transfer by deleting the pending transfer from the
+ * applied_transfers table.
+ * 
+ * This operation is for bookkeeping purposes and it is not the end of the world
+ * if it is not executed.
+ * 
+ * The worst case scenario is that the user will believe that they have an additional
+ * transfer to complete, but when they try to complete it, it will fail because
+ * the transfer has already been completed.
+ */
+operation complete_transfer(
+  final_apply_transfer_tx: gtx_transaction,
+  op_index: integer
+) {
+  require(
+    final_apply_transfer_tx.body.operations[op_index].name == rell.meta(apply_transfer).mount_name,
+    "Operation at op_index was not apply_transfer"
+  );
+
+  val final_apply_transfer_args = struct<apply_transfer>
+    .from_gtv(
+      final_apply_transfer_tx
+        .body
+        .operations[op_index]
+        .args
+        .to_gtv()
+    );
+
+  val init_transfer_tx_hash = final_apply_transfer_args.init_transfer_tx.to_gtv().hash();
+
+  iccf.require_valid_proof(
+    final_apply_transfer_tx,
+    require_anchored_proof = true,
+    verify_signers = false
+  );
+
+  delete pending_transfer @ {
+    .transaction
+    .tx_hash == init_transfer_tx_hash,
+    .op_index == final_apply_transfer_args
+    .init_tx_op_index
+  };
+}
+
+function _apply_transfer(account_id: byte_array, token: yours.token, amount: big_integer, crosschain_source_blockchain_rid: byte_array, token_metadata: yours.token_metadata_incoming) {
+  val account = ft4.accounts.account @ { account_id };
+  yours._mint(token, yours.balance_info(account, amount), crosschain_source_blockchain_rid);
+  yours.after_apply_transfer(token, account);
+}
+
+function _apply_properties(token: yours.token, metadata: yours.token_metadata_incoming) {
+  yours.attach_modules(token, metadata.yours.modules);
+  val imported_attributes = yours.imported_properties @? { token };
+  if (imported_attributes != null) {
+    val existing_properties = yours._gtv_to_properties(gtv.from_bytes(imported_attributes.data));
+    val new_properties = yours._gtv_to_properties(metadata.properties);
+    for (name in new_properties.keys()) {
+      val value = new_properties[name];
+      existing_properties[name] = value;
+    }
+    imported_attributes.data = existing_properties.to_gtv_pretty().to_bytes();
+  } else {
+    create yours.imported_properties ( token, data = metadata.properties.to_gtv_pretty().to_bytes() );
+  }
+}
+
+struct init_transfer_details {
+  oracle_transfer: boolean;
+  tx_rid: byte_array;
+  source_blockchain_rid: byte_array;
+  target_blockchain_rid: byte_array;
+  sender_account_id: byte_array;
+  recipient_id: byte_array;
+  id: byte_array;
+  issuing_chain: byte_array;
+  amount: big_integer;
+  metadata: yours.token_metadata_incoming;
+}
+
+function _validate_apply_transfer(
+  init_transfer_tx: gtx_transaction,
+  init_tx_op_index: integer
+) {
+  val details = require(_get_init_transfer_details(init_transfer_tx, init_tx_op_index), "Invalid init_transfer operation");
+
+  require(
+    applied_transfers @? {
+      .init_tx_rid == details.tx_rid,
+      .init_op_index == init_tx_op_index
+    } == null,
+    "Transaction <%s> transfer at index <%s> has already been applied on this chain."
+      .format(details.tx_rid, init_tx_op_index)
+  );
+
+  require(
+    canceled_transfers @? { .init_tx_rid == details.tx_rid, init_tx_op_index } == null,
+    "Transaction <%s> transfer at index <%s> has already been canceled on this chain."
+      .format(details.tx_rid, init_tx_op_index)
+  );
+
+  require(
+    unapplied_transfers @? { .init_tx_rid == details.tx_rid, init_tx_op_index } == null,
+    "Transaction <%s> transfer at index <%s> has already been unapplied on this chain."
+      .format(details.tx_rid, init_tx_op_index)
+  );
+
+  iccf.require_valid_proof(
+    init_transfer_tx,
+    require_anchored_proof = true,
+    verify_signers = false
+  );
+
+  return details;
+}
+
+function _get_init_transfer_details(tx: gtx_transaction, op_index: integer) {
+  val op = tx.body.operations[op_index];
+
+  val tx_rid = tx.body.hash();
+
+  if (op.name == rell.meta(init_transfer).mount_name) {
+    val args = struct<init_transfer>.from_gtv(op.args.to_gtv());
+    val auth_op = tx.body.operations[op_index - 1];
+    val target_blockchain_rid = args.target_blockchain_rid;
+    val source_blockchain_rid = tx.body.blockchain_rid;
+    val sender_account_id = ft4.auth.extract_account_id(auth_op);
+    val recipient_id = args.recipient_id;
+    val id = args.id;
+    val issuing_chain = args.issuing_chain;
+    val amount = args.amount;
+    val metadata = args.metadata;
+
+    return init_transfer_details(false, tx_rid, source_blockchain_rid, target_blockchain_rid, sender_account_id, recipient_id, id, issuing_chain, amount, metadata);
+  } else if (op.name == rell.meta(init_oracle_transfer).mount_name) {
+    val args = struct<init_oracle_transfer>.from_gtv(op.args.to_gtv());
+    val target_blockchain_rid = args.target_blockchain_rid;
+    val source_blockchain_rid = tx.body.blockchain_rid;
+    val sender_account_id = args.account_id;
+    val recipient_id = args.recipient_id;
+    val id = args.id;
+    val issuing_chain = args.issuing_chain;
+    val amount = args.amount;
+    val metadata = args.metadata;
+
+    return init_transfer_details(true, tx_rid, source_blockchain_rid, target_blockchain_rid, sender_account_id, recipient_id, id, issuing_chain, amount, metadata);
+  } else {
+    return null;
+  }
+}
+
+function _ensure_visited_blockchains(token: yours.token, blockchains: list<byte_array>) {
+  for (blockchain in blockchains) {
+    if (yours.visited_blockchain @? { token, blockchain } == null) {
+      create yours.visited_blockchain ( token, blockchain );
+    }
+  }
+}
+
+query get_pending_transfers_for_account(account_id: byte_array) {
+  return pending_transfer @* {
+    .sender.id == account_id
+  } (
+    tx_data = .transaction.tx_data,
+    op_index = .op_index
+  );
+}
+
+query is_transfer_applied(tx_rid: byte_array, op_index: integer) {
+  return applied_transfers @? { .init_tx_rid == tx_rid, .init_op_index == op_index } != null;
+}
+
+entity applied_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+  transaction;
+  op_index: integer;
+}
+
+entity canceled_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}
+
+entity unapplied_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}
+
+entity recalled_transfers {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}
+
+entity pending_transfer {
+  key transaction, op_index;
+  op_index: integer;
+  index sender: ft4.accounts.account;
+}
+
+entity reverted_transfer {
+  key init_tx_rid, init_op_index;
+  init_tx_rid: byte_array;
+  init_op_index: integer;
+}

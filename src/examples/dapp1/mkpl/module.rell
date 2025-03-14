@@ -1,0 +1,17 @@
+@mount("mkpl") module;
+
+namespace ft4 {
+  import lib.ft4.auth;
+  import lib.ft4.accounts;
+}
+
+import lib.yours;
+
+operation transfer(token_id: byte_array, amount: big_integer, to_account_id: byte_array) {
+  val from_account = ft4.auth.authenticate();
+
+  val to_account = ft4.accounts.account @? { .id == to_account_id } ?: create ft4.accounts.account ( id = to_account_id, "DEMO_ACC" );
+  val token = require(yours.get_token(token_id));
+
+  yours.transfer(token, yours.transfer_info(from = from_account, to = to_account, amount = amount));
+}

@@ -1,0 +1,2 @@
+val MODULE_NAME = "erc721";
+val EVENT_PREFIX = "L_yours_%s".format(MODULE_NAME);

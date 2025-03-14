@@ -1,0 +1,13 @@
+struct token_balance_dto {
+  id: byte_array;
+  issuing_chain: byte_array;
+  type: text;
+  amount: big_integer;
+  account_id: byte_array;
+}
+
+struct token_dto {
+  id: byte_array;
+  issuing_chain: byte_array;
+  type: yours.token_type;
+}

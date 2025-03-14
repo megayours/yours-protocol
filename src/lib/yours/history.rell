@@ -1,0 +1,29 @@
+enum transfer_type {
+  sent,
+  received,
+  external_sent,
+  external_received
+}
+
+function log_transfer_history_entry(token, ft4.accounts.account, amount: big_integer, type: transfer_type) {
+  return create transfer_history_entry (
+    op_index = op_context.op_index,
+    token = token,
+    account = account,
+    amount = amount,
+    type = type
+  );
+}
+
+function log_crosschain_transfer_history_entry(
+  token,
+  ft4.accounts.account,
+  amount: big_integer,
+  type: transfer_type,
+  blockchain_rid: byte_array
+) {
+  return create crosschain_transfer_history_entry (
+    transfer_history_entry = log_transfer_history_entry(token, account, amount, type),
+    blockchain_rid = blockchain_rid
+  );
+}

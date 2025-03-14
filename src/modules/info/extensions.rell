@@ -1,0 +1,30 @@
+@extend(yours.provide_properties)
+function (yours.token, modules: set<name>) {
+  val properties = map<text, gtv>();
+  if (not modules.contains(MODULE_NAME)) return yours.provide_module_properties(MODULE_NAME, properties);
+
+  val info = token_info @? { token };
+  if (info != null) {
+    properties.put("name", info.name.to_gtv());
+  }
+
+  return yours.provide_module_properties(MODULE_NAME, properties);
+}
+
+@extend(yours.receive_properties)
+function (yours.token, module_name: name, properties: map<text, gtv>) {
+  if (module_name != MODULE_NAME and module_name != erc721.MODULE_NAME) return;
+  yours.attach_module(token, MODULE_NAME);
+
+  val name_gtv = properties.get_or_null("name");
+  if (name_gtv == null) return;
+  val name = text.from_gtv(name_gtv);
+
+  val info = token_info @? { token };
+  if (info == null) {
+    create token_info ( token, name );
+  } else if (info.name != name) {
+    info.name = name;
+  }
+}
+

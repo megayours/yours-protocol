@@ -1,0 +1,4 @@
+@extend(yours.allow_oracle_transfer)
+function authorized_oracle_transfer(): boolean {
+  return op_context.is_signer(chain_context.args.oracle_pubkey);
+}

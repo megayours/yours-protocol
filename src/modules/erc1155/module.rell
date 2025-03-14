@@ -1,0 +1,4 @@
+@mount("erc1155")
+module;
+
+import lib.yours;
