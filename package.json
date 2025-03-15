@@ -25,7 +25,7 @@
     "@chromia/ft4": "^1.0.1",
     "@commitlint/cli": "^19.4.0",
     "@commitlint/config-conventional": "^19.2.2",
-    "@megayours/sdk": "file:../ts-sdk",
+    "@megayours/sdk": "0.3.1",
     "@testcontainers/postgresql": "^10.18.0",
     "@typescript-eslint/eslint-plugin": "^8.2.0",
     "@typescript-eslint/parser": "^8.2.0",
